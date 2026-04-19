@@ -1,5 +1,4 @@
 import { Worker } from "bullmq";
-import { eq } from "drizzle-orm";
 
 import { db } from "@acme/db/client";
 import { activity, communication } from "@acme/db/schema";
@@ -64,11 +63,19 @@ export function startEmailWorker() {
   );
 
   worker.on("failed", (job, err) => {
+    if (!job) {
+      logger.error({
+        operation: "email.worker.send",
+        error: err.message,
+      }, "email.failed_without_job");
+      return;
+    }
+
     logger.error({
       operation: "email.worker.send",
-      jobId: job?.id,
-      error: err?.message,
-      attempts: job?.attemptsMade,
+      jobId: job.id,
+      error: err.message,
+      attempts: job.attemptsMade,
     }, "email.failed");
   });
 
@@ -79,11 +86,14 @@ async function recordActivityAndEvent(
   data: EmailJob,
   messageId: string,
 ): Promise<void> {
+  const organizationId = data.organizationId;
+  if (!organizationId) return;
+
   await db.transaction(async (tx) => {
     const [act] = await tx
       .insert(activity)
       .values({
-        organizationId: data.organizationId!,
+        organizationId,
         contactId: data.contactId,
         kind: "email",
         direction: "outbound",
@@ -105,7 +115,7 @@ async function recordActivityAndEvent(
     });
 
     await publish(tx, {
-      organizationId: data.organizationId!,
+      organizationId,
       eventType: EventType.EmailSent,
       aggregateType: "email",
       aggregateId: messageId,
@@ -117,5 +127,4 @@ async function recordActivityAndEvent(
       actor: data.enqueuedBy,
     });
   });
-  void eq;
 }

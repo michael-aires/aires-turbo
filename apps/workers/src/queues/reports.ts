@@ -1,6 +1,9 @@
 import { Worker } from "bullmq";
 
-import { BlacklineAdapter } from "@acme/integrations";
+import {
+  BlacklineAdapter,
+  ReportExportRequestSchema,
+} from "@acme/integrations";
 import type { ReportExportRequest } from "@acme/integrations";
 import { createLogger } from "@acme/observability";
 
@@ -21,7 +24,8 @@ export function startReportsWorker() {
   return new Worker<ReportExportRequest>(
     "reports",
     async (job) => {
-      const result = await adapter.fetchReport(job.data);
+      const input = ReportExportRequestSchema.parse(job.data);
+      const result = await adapter.fetchReport(input);
       logger.info({ jobId: job.id, url: result.downloadUrl }, "report.fetched");
       return result;
     },

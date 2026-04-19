@@ -1,3 +1,5 @@
+import { z } from "zod/v4";
+
 /**
  * Shared adapter contract. Every integration exposes a small, narrow surface
  * matching a single concern — adapters are composed by the worker/core layer
@@ -39,20 +41,31 @@ export interface VoiceCall {
   metadata?: Record<string, string>;
 }
 
-export interface ContractSignRequest {
-  templateId: string;
-  submitters: {
-    email: string;
-    name?: string;
-    role?: string;
-    fields?: Record<string, string>;
-  }[];
-  metadata?: Record<string, string>;
-}
+export const ContractSubmitterSchema = z.object({
+  email: z.string().email(),
+  name: z.string().max(256).optional(),
+  role: z.string().max(64).optional(),
+  fields: z.record(z.string(), z.string()).optional(),
+});
 
-export interface ReportExportRequest {
-  projectId: string;
-  reportType: string;
-  dateRange: { from: string; to: string };
-  format: "csv" | "xlsx" | "pdf";
-}
+export const ContractSignRequestSchema = z.object({
+  templateId: z.string().min(1),
+  submitters: z.array(ContractSubmitterSchema).min(1),
+  metadata: z.record(z.string(), z.string()).optional(),
+});
+
+export type ContractSignRequest = z.infer<typeof ContractSignRequestSchema>;
+
+export const ReportDateRangeSchema = z.object({
+  from: z.string().datetime(),
+  to: z.string().datetime(),
+});
+
+export const ReportExportRequestSchema = z.object({
+  projectId: z.string().uuid(),
+  reportType: z.string().min(1),
+  dateRange: ReportDateRangeSchema,
+  format: z.enum(["csv", "xlsx", "pdf"]),
+});
+
+export type ReportExportRequest = z.infer<typeof ReportExportRequestSchema>;

@@ -84,4 +84,19 @@ describe("hasScope", () => {
       false,
     );
   });
+
+  it("accepts legacy scope aliases for compatibility", () => {
+    assert.equal(
+      hasScope(agentActor(["contracts:send"]), ["contract:send"]),
+      true,
+    );
+    assert.equal(
+      hasScope(agentActor(["reports:read"]), ["report:fetch"]),
+      true,
+    );
+    assert.equal(
+      hasScope(agentActor(["kb:read"]), ["kb:search"]),
+      true,
+    );
+  });
 });

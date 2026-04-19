@@ -104,7 +104,6 @@ export function initAuth(options: InitAuthOptions) {
       onError(error, ctx) {
         // Pre-existing from the t3-turbo template. Better-Auth has no native
         // logger binding; keeping console here until a shim is wired.
-        // eslint-disable-next-line no-console
         console.error("BETTER AUTH API ERROR", error, ctx);
       },
     },

@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { LegendList } from "@legendapp/list";
 import { ChevronLeft, Calendar, Mail, Phone } from "lucide-react-native";
-import { Avatar, StatusBadge, TabButton } from "~/components";
+import { Avatar, TabButton } from "~/components";
 import {
   followUps,
   getContactById,

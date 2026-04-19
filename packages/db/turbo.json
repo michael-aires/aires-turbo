@@ -1,0 +1,24 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "env": ["DATABASE_URL", "DATABASE_POOL_MAX"]
+    },
+    "dev": {
+      "env": ["DATABASE_URL", "DATABASE_POOL_MAX"]
+    },
+    "lint": {
+      "env": ["DATABASE_URL", "DATABASE_POOL_MAX"]
+    },
+    "push": {
+      "env": ["DATABASE_URL", "DATABASE_POOL_MAX"]
+    },
+    "studio": {
+      "env": ["DATABASE_URL", "DATABASE_POOL_MAX"]
+    },
+    "typecheck": {
+      "env": ["DATABASE_URL", "DATABASE_POOL_MAX"]
+    }
+  }
+}

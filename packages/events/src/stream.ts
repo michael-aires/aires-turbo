@@ -72,7 +72,9 @@ export async function consumeStream(
         const idx = fields.indexOf("envelope");
         if (idx === -1 || idx + 1 >= fields.length) continue;
         try {
-          const envelope = JSON.parse(fields[idx + 1]!) as EventEnvelope;
+          const envelopeField = fields[idx + 1];
+          if (!envelopeField) continue;
+          const envelope = JSON.parse(envelopeField) as EventEnvelope;
           await handler(envelope, id);
           await r.xack(STREAM_KEY, options.group, id);
         } catch (error) {
@@ -105,7 +107,9 @@ export async function broadcast(envelope: EventEnvelope): Promise<void> {
 export function subscribeBroadcast(
   handler: (envelope: EventEnvelope) => void,
 ): () => void {
-  const sub = new Redis(process.env.REDIS_URL!);
+  const redisUrl = process.env.REDIS_URL;
+  if (!redisUrl) throw new Error("REDIS_URL is not configured");
+  const sub = new Redis(redisUrl);
   void sub.subscribe("aires:events:broadcast");
   sub.on("message", (_channel: string, message: string) => {
     try {

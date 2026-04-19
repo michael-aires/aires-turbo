@@ -27,7 +27,7 @@ export class BlacklineAdapter implements IntegrationAdapter<BlacklineConfig> {
       format: request.format,
     });
     const response = await fetch(
-      `${this.baseUrl}/projects/${request.projectId}/reports?${params}`,
+      `${this.baseUrl}/projects/${request.projectId}/reports?${params.toString()}`,
       {
         headers: {
           authorization: `Bearer ${this.config.apiToken}`,

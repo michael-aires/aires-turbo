@@ -6,7 +6,7 @@ import { agent, agentToken } from "@acme/db/schema";
 
 import { auth } from "./auth.js";
 import type { CoreHonoEnv } from "./middleware/context.js";
-import { requireActor } from "./middleware/context.js";
+import { getRequiredActor, requireActor } from "./middleware/context.js";
 
 /**
  * Mint a short-lived JWT for a given agent. The caller must be a human user
@@ -17,7 +17,7 @@ import { requireActor } from "./middleware/context.js";
 export const agentTokensRouter = new Hono<CoreHonoEnv>()
   .use(requireActor)
   .post("/:agentId/tokens", async (c) => {
-    const actor = c.get("actor");
+    const actor = getRequiredActor(c);
     if (actor.type !== "user") {
       return c.json({ error: "only users can mint agent tokens" }, 403);
     }

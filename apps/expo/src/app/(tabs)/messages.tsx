@@ -4,12 +4,7 @@ import { useRouter } from "expo-router";
 import { LegendList } from "@legendapp/list";
 import { MessageSquare, Edit } from "lucide-react-native";
 import { Avatar } from "~/components";
-import { communications, getContactById, getContactInitials, getContactFullName, formatTimeAgo } from "~/data/mockData";
-
-// Filter SMS communications and group by contact
-const smsConversations = communications
-  .filter((c) => c.type === "sms")
-  .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+import { getContactById, getContactInitials, getContactFullName, formatTimeAgo } from "~/data/mockData";
 
 // Mock conversation threads
 const mockConversations = [

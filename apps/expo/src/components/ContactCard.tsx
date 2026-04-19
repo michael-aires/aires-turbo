@@ -43,10 +43,10 @@ export function ContactCard({ contact }: ContactCardProps) {
             {contact.company ? `${contact.company} \u2022 ` : ""}
             {contact.phone}
           </Text>
-          {(contact.propertyType || contact.budgetMin || contact.budgetMax) && (
+          {(contact.propertyType ?? contact.budgetMin ?? contact.budgetMax) && (
             <Text className="mt-0.5 text-sm text-gray-500">
               {contact.propertyType}
-              {contact.propertyType && (contact.budgetMin || contact.budgetMax) ? " \u2022 " : ""}
+              {contact.propertyType && (contact.budgetMin ?? contact.budgetMax) ? " \u2022 " : ""}
               {formatBudgetRange(contact.budgetMin, contact.budgetMax)}
             </Text>
           )}
@@ -55,8 +55,8 @@ export function ContactCard({ contact }: ContactCardProps) {
       <View className="mt-3 flex-row gap-2">
         <QuickActionRow
           onCall={handleCall}
-          onSMS={() => {}}
-          onEmail={() => {}}
+          onSMS={undefined}
+          onEmail={undefined}
         />
       </View>
     </Pressable>

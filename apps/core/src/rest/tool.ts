@@ -4,8 +4,9 @@ import { hitRateLimit, toolRegistry, writeAudit } from "@acme/agents";
 import { resolveOrgId } from "@acme/auth/org-resolver";
 
 import { hasScope } from "../lib/scope.js";
+import { resolveToolProjectScope } from "../lib/tool-project-scope.js";
 import type { CoreHonoEnv } from "../middleware/context.js";
-import { requireActor } from "../middleware/context.js";
+import { getRequiredActor, requireActor } from "../middleware/context.js";
 
 const TOOL_RATE_LIMIT_WINDOW_MS = 60_000;
 const TOOL_RATE_LIMIT_MAX = 60;
@@ -30,7 +31,7 @@ export const toolRest = new Hono<CoreHonoEnv>()
     const tool = toolRegistry.get(name);
     if (!tool) return c.json({ error: `tool not registered: ${name}` }, 404);
 
-    const actor = c.get("actor");
+    const actor = getRequiredActor(c);
     const requestId = c.get("requestId");
 
     const organizationId = await resolveOrgId(actor);
@@ -67,7 +68,21 @@ export const toolRest = new Hono<CoreHonoEnv>()
       }
     }
 
-    const input = await c.req.json().catch(() => ({}));
+    const input = (await c.req.json().catch(() => ({}))) as unknown;
+    const projectScope = resolveToolProjectScope(actor, input);
+    if (projectScope.error === "forbidden") {
+      await writeAudit(
+        { actor, organizationId, requestId },
+        {
+          tool: name,
+          action: `tool.${name}`,
+          result: "denied",
+          errorCode: "project_scope",
+        },
+      );
+      return c.json({ error: "project access denied" }, 403);
+    }
+
     const parsed = tool.inputSchema.safeParse(input);
     if (!parsed.success) {
       return c.json({ error: "invalid input", details: parsed.error.issues }, 400);
@@ -76,7 +91,12 @@ export const toolRest = new Hono<CoreHonoEnv>()
     try {
       const result = await tool.handler({
         input: parsed.data,
-        ctx: { actor, organizationId, requestId },
+        ctx: {
+          actor,
+          organizationId,
+          projectId: projectScope.projectId,
+          requestId,
+        },
       });
       return c.json(result);
     } catch (err) {

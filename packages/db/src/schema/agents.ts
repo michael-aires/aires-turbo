@@ -1,6 +1,6 @@
 import { index, pgTable } from "drizzle-orm/pg-core";
 
-import { agent, organization, project } from "./identity";
+import { agent, organization, project } from "./identity.js";
 
 export const tool = pgTable(
   "tool",

@@ -1,0 +1,42 @@
+{
+  "name": "@acme/agent-harness",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "echo 'skip compile — runtime uses tsx on src/*.ts'",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "pnpm with-env tsx watch src/server.ts",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "start": "tsx src/server.ts",
+    "test": "tsx --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "with-env": "dotenv -e ../../.env --"
+  },
+  "dependencies": {
+    "@acme/kv": "workspace:*",
+    "@acme/mcp-client": "workspace:*",
+    "@acme/observability": "workspace:*",
+    "@acme/validators": "workspace:*",
+    "@ai-sdk/anthropic": "^1.1.12",
+    "@ai-sdk/google": "^1.1.18",
+    "@ai-sdk/openai": "^1.1.12",
+    "@hono/node-server": "^1.13.7",
+    "@t3-oss/env-core": "^0.13.8",
+    "ai": "^5.0.0",
+    "hono": "^4.6.15",
+    "tsx": "^4.19.2",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@acme/eslint-config": "workspace:*",
+    "@acme/prettier-config": "workspace:*",
+    "@acme/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "dotenv-cli": "^10.0.0",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  },
+  "prettier": "@acme/prettier-config"
+}

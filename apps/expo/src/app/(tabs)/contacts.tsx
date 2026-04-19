@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 import { LegendList } from "@legendapp/list";
 import { Plus } from "lucide-react-native";
 import { SearchBar, FilterPills, ContactCard } from "~/components";
-import { contacts, filterContactsByStatus, searchContacts } from "~/data/mockData";
+import { contacts, filterContactsByStatus } from "~/data/mockData";
 import type { LeadStatus } from "~/data/mockData";
 
 type FilterOption = LeadStatus | "all";

@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import { randomUUID } from "node:crypto";
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -52,7 +53,11 @@ async function buildServer(agentJwt: string): Promise<McpServer> {
   return server;
 }
 
-const httpServer = createServer(async (req, res) => {
+const httpServer = createServer((req, res) => {
+  void handleRequest(req, res);
+});
+
+async function handleRequest(req: IncomingMessage, res: ServerResponse) {
   const url = new URL(req.url ?? "/", `http://${req.headers.host}`);
 
   if (url.pathname === "/healthz" || url.pathname === "/readyz") {
@@ -63,7 +68,7 @@ const httpServer = createServer(async (req, res) => {
 
   if (req.method === "GET" && url.pathname === "/sse") {
     const auth = req.headers.authorization?.replace(/^Bearer\s+/, "");
-    const agentJwt = auth ?? url.searchParams.get("token") ?? "";
+    const agentJwt = auth ?? "";
     if (!agentJwt) {
       res.writeHead(401).end('{"error":"agent token required"}');
       return;
@@ -92,7 +97,7 @@ const httpServer = createServer(async (req, res) => {
   }
 
   res.writeHead(404).end();
-});
+}
 
 httpServer.listen(env.PORT, () => {
   logger.info({ port: env.PORT }, "mcp.boot");

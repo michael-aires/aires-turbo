@@ -2,9 +2,11 @@ import type { TRPCRouterRecord } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod/v4";
 
+import type { DBTransaction } from "@acme/db/client";
 import { activity, CreateActivitySchema } from "@acme/db/schema";
 import { EventType, publish } from "@acme/events";
 
+import { assertOrganizationAccess } from "../authz.js";
 import { protectedProcedure } from "../trpc.js";
 
 export const activityRouter = {
@@ -16,7 +18,9 @@ export const activityRouter = {
         limit: z.number().int().min(1).max(100).default(25),
       }),
     )
-    .query(({ ctx, input }) => {
+    .query(async ({ ctx, input }) => {
+      await assertOrganizationAccess(ctx, input.organizationId);
+
       const where = input.contactId
         ? and(
             eq(activity.organizationId, input.organizationId),
@@ -35,7 +39,9 @@ export const activityRouter = {
   log: protectedProcedure
     .input(CreateActivitySchema)
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.transaction(async (tx) => {
+      await assertOrganizationAccess(ctx, input.organizationId);
+
+      return ctx.db.transaction(async (tx: DBTransaction) => {
         const [row] = await tx.insert(activity).values(input).returning();
         if (!row) throw new Error("failed to insert activity");
 
@@ -51,7 +57,7 @@ export const activityRouter = {
           },
           actor: {
             type: "user",
-            id: ctx.session?.user.id ?? "anonymous",
+            id: ctx.session.user.id,
           },
         });
         return row;

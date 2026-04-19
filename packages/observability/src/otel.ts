@@ -33,12 +33,16 @@ export function startTelemetry(serviceName: string, version = "0.0.0") {
 
   sdk.start();
 
-  const shutdown = () =>
+  const shutdown = async () =>
     sdk
       .shutdown()
       .catch((err) => console.error("otel shutdown failed", err))
       .finally(() => process.exit(0));
 
-  process.on("SIGTERM", shutdown);
-  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", () => {
+    void shutdown();
+  });
+  process.on("SIGINT", () => {
+    void shutdown();
+  });
 }

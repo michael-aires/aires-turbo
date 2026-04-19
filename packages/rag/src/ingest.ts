@@ -73,14 +73,21 @@ export async function ingestDocument(
     const embeddings = await embedder.embed(chunks);
 
     await tx.insert(kbChunk).values(
-      chunks.map((content: string, idx: number) => ({
-        documentId: doc.id,
-        chunkIndex: idx,
-        content,
-        embedding: embeddings[idx]!,
-        tokens: Math.ceil(content.split(/\s+/).length * 1.3),
-        metadata: input.metadata ?? {},
-      })),
+      chunks.map((content: string, idx: number) => {
+        const embedding = embeddings[idx];
+        if (!embedding) {
+          throw new Error(`missing embedding for chunk ${idx}`);
+        }
+
+        return {
+          documentId: doc.id,
+          chunkIndex: idx,
+          content,
+          embedding,
+          tokens: Math.ceil(content.split(/\s+/).length * 1.3),
+          metadata: input.metadata ?? {},
+        };
+      }),
     );
 
     return {

@@ -32,10 +32,12 @@ const CreateSchema = z.object({
 
 const CANONICAL_EVENTS = [
   "contact.created",
+  "contact.updated",
   "activity.logged",
   "email.sent",
   "approval.requested",
-  "agent.run.completed",
+  "agent_run.started",
+  "agent_run.completed",
 ] as const;
 
 export function CreateSubscriptionForm({
@@ -67,8 +69,14 @@ export function CreateSubscriptionForm({
       description: "",
       eventTypes: ["*"] as string[],
     },
-    validators: { onSubmit: CreateSchema },
-    onSubmit: (data) => create.mutate(data.value),
+    onSubmit: ({ value }) => {
+      const parsed = CreateSchema.safeParse(normalizeSubscriptionInput(value));
+      if (!parsed.success) {
+        toast.error("Please correct the form and try again");
+        return;
+      }
+      create.mutate(parsed.data);
+    },
   });
 
   if (!open) {
@@ -287,4 +295,20 @@ export function SubscriptionList({
 
 export function SubscriptionListSkeleton() {
   return <div className="bg-muted/30 h-64 animate-pulse rounded-lg border" />;
+}
+
+function normalizeSubscriptionInput(input: {
+  organizationId: string;
+  url: string;
+  secret: string;
+  description: string;
+  eventTypes: string[];
+}) {
+  return {
+    organizationId: input.organizationId,
+    url: input.url,
+    secret: input.secret,
+    description: input.description || undefined,
+    eventTypes: input.eventTypes,
+  };
 }

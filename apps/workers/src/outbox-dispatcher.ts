@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import {
   broadcast,
   drainOutbox,
@@ -16,6 +18,7 @@ const logger = createLogger("worker.outbox");
  */
 export function startOutboxDispatcher() {
   let stopped = false;
+  const consumerId = `outbox-${randomUUID()}`;
   const stop = () => {
     stopped = true;
   };
@@ -24,6 +27,7 @@ export function startOutboxDispatcher() {
     while (!stopped) {
       try {
         const { processed, failed } = await drainOutbox({
+          consumerId,
           sink: async (rows) => {
             const failedIds: string[] = [];
             for (const row of rows) {

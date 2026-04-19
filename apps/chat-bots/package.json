@@ -1,0 +1,36 @@
+{
+  "name": "@acme/chat-bots",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "echo 'skip compile — runtime uses tsx on src/*.ts'",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "pnpm with-env tsx watch src/server.ts",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "start": "tsx src/server.ts",
+    "test": "tsx --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "with-env": "dotenv -e ../../.env --"
+  },
+  "dependencies": {
+    "@acme/kv": "workspace:*",
+    "@acme/observability": "workspace:*",
+    "@hono/node-server": "^1.13.7",
+    "@t3-oss/env-core": "^0.13.8",
+    "hono": "^4.6.15",
+    "tsx": "^4.19.2",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@acme/eslint-config": "workspace:*",
+    "@acme/prettier-config": "workspace:*",
+    "@acme/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "dotenv-cli": "^10.0.0",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  },
+  "prettier": "@acme/prettier-config"
+}

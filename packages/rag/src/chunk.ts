@@ -67,8 +67,10 @@ function overlap(prev: string[], overlapTokens: number): string[] {
   const tail: string[] = [];
   let tokens = 0;
   for (let i = prev.length - 1; i >= 0 && tokens < overlapTokens; i -= 1) {
-    tail.unshift(prev[i]!);
-    tokens += approxTokens(prev[i]!);
+    const paragraph = prev[i];
+    if (!paragraph) continue;
+    tail.unshift(paragraph);
+    tokens += approxTokens(paragraph);
   }
   return tail;
 }

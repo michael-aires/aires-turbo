@@ -3,18 +3,16 @@ import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "./root.js";
 
 /**
- * Inference helpers for input types
+ * Inference helpers for tRPC input types.
  * @example
- * type PostByIdInput = RouterInputs['post']['byId']
- *      ^? { id: number }
+ * type CreateContactInput = RouterInputs["contact"]["create"]
  */
 type RouterInputs = inferRouterInputs<AppRouter>;
 
 /**
- * Inference helpers for output types
+ * Inference helpers for tRPC output types.
  * @example
- * type AllPostsOutput = RouterOutputs['post']['all']
- *      ^? Post[]
+ * type ListContactsOutput = RouterOutputs["contact"]["list"]
  */
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 

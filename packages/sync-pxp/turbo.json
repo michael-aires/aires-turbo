@@ -1,0 +1,15 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "bootstrap": {
+      "env": ["PXP_MONGO_URL", "MONGODB_URI", "DEFAULT_ORG_NAME"]
+    },
+    "lint": {
+      "env": ["PXP_MONGO_URL", "MONGODB_URI", "DEFAULT_ORG_NAME"]
+    },
+    "typecheck": {
+      "env": ["PXP_MONGO_URL", "MONGODB_URI", "DEFAULT_ORG_NAME"]
+    }
+  }
+}

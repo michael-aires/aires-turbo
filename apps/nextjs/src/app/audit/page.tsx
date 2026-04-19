@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { HydrateClient, prefetch, trpc } from "~/trpc/server";
+import { getSelectedOrganizationId } from "../_lib/organization";
 import { AuditLogTable, AuditLogTableSkeleton } from "./_components/audit";
 
 interface AuditPageProps {
@@ -9,14 +10,14 @@ interface AuditPageProps {
 
 export default async function AuditPage({ searchParams }: AuditPageProps) {
   const params = await searchParams;
-  const organizationId = params.org;
+  const organizationId = await getSelectedOrganizationId(params.org);
 
   if (!organizationId) {
     return (
       <main className="container py-16">
         <h1 className="text-3xl font-bold">Audit Log</h1>
         <p className="text-muted-foreground mt-4">
-          Pass <code>?org=&lt;uuid&gt;</code> to scope this page to your organization.
+          No accessible organization was found for this account.
         </p>
       </main>
     );

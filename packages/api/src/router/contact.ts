@@ -2,10 +2,15 @@ import type { TRPCRouterRecord } from "@trpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod/v4";
 
+import type { DBTransaction } from "@acme/db/client";
 import { contact, CreateContactSchema } from "@acme/db/schema";
 import { EventType, publish } from "@acme/events";
 
-import { protectedProcedure, publicProcedure } from "../trpc.js";
+import {
+  assertOrganizationAccess,
+  assertRowOrganizationAccess,
+} from "../authz.js";
+import { protectedProcedure } from "../trpc.js";
 
 export const contactRouter = {
   list: protectedProcedure
@@ -18,6 +23,8 @@ export const contactRouter = {
       }),
     )
     .query(async ({ ctx, input }) => {
+      await assertOrganizationAccess(ctx, input.organizationId);
+
       const whereClause = input.projectId
         ? and(
             eq(contact.organizationId, input.organizationId),
@@ -42,16 +49,22 @@ export const contactRouter = {
 
   byId: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
-    .query(({ ctx, input }) => {
-      return ctx.db.query.contact.findFirst({
+    .query(async ({ ctx, input }) => {
+      const row = await ctx.db.query.contact.findFirst({
         where: eq(contact.id, input.id),
       });
+
+      if (!row) return null;
+      await assertRowOrganizationAccess(ctx, row.organizationId);
+      return row;
     }),
 
   create: protectedProcedure
     .input(CreateContactSchema)
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.transaction(async (tx) => {
+      await assertOrganizationAccess(ctx, input.organizationId);
+
+      return ctx.db.transaction(async (tx: DBTransaction) => {
         const [row] = await tx.insert(contact).values(input).returning();
         if (!row) throw new Error("failed to insert contact");
 
@@ -67,7 +80,7 @@ export const contactRouter = {
           },
           actor: {
             type: "user",
-            id: ctx.session?.user.id ?? "anonymous",
+            id: ctx.session.user.id,
           },
         });
 
@@ -75,9 +88,11 @@ export const contactRouter = {
       });
     }),
 
-  count: publicProcedure
+  count: protectedProcedure
     .input(z.object({ organizationId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      await assertOrganizationAccess(ctx, input.organizationId);
+
       const [row] = await ctx.db
         .select({ count: sql<number>`count(*)::int` })
         .from(contact)

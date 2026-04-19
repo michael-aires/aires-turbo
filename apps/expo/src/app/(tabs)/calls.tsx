@@ -4,12 +4,7 @@ import { useRouter } from "expo-router";
 import { LegendList } from "@legendapp/list";
 import { Phone, PhoneIncoming, PhoneOutgoing, PhoneMissed } from "lucide-react-native";
 import { Avatar } from "~/components";
-import { communications, getContactById, getContactInitials, getContactFullName, formatTimeAgo } from "~/data/mockData";
-
-// Filter only calls from communications
-const callHistory = communications
-  .filter((c) => c.type === "call")
-  .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+import { getContactById, getContactInitials, getContactFullName, formatTimeAgo } from "~/data/mockData";
 
 // Add some mock call history
 const mockCalls = [

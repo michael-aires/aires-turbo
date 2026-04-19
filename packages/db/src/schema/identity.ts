@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import { index, pgTable, uniqueIndex } from "drizzle-orm/pg-core";
 
-import { user } from "../auth-schema";
+import { user } from "../auth-schema.js";
 
 export const organization = pgTable("organization", (t) => ({
   id: t.uuid().primaryKey().defaultRandom(),

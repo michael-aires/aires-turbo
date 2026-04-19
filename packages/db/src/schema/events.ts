@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
-import { index, pgTable } from "drizzle-orm/pg-core";
+import { index, pgTable, uniqueIndex } from "drizzle-orm/pg-core";
 
-import { organization } from "./identity";
+import { organization } from "./identity.js";
 
 export const outboxEvent = pgTable(
   "outbox_event",
@@ -17,6 +17,8 @@ export const outboxEvent = pgTable(
     payload: t.jsonb().$type<Record<string, unknown>>().notNull(),
     createdAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
     publishedAt: t.timestamp({ withTimezone: true }),
+    claimedAt: t.timestamp({ withTimezone: true }),
+    claimedBy: t.varchar({ length: 128 }),
     attempts: t.integer().notNull().default(0),
     lastError: t.text(),
   }),
@@ -77,11 +79,17 @@ export const webhookDelivery = pgTable(
     lastError: t.text(),
     attempts: t.integer().notNull().default(0),
     nextRetryAt: t.timestamp({ withTimezone: true }),
+    claimedAt: t.timestamp({ withTimezone: true }),
+    claimedBy: t.varchar({ length: 128 }),
     deliveredAt: t.timestamp({ withTimezone: true }),
     createdAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
   }),
   (table) => [
     index("delivery_status_retry_idx").on(table.status, table.nextRetryAt),
     index("delivery_subscription_idx").on(table.subscriptionId),
+    uniqueIndex("delivery_subscription_event_uniq").on(
+      table.subscriptionId,
+      table.outboxEventId,
+    ),
   ],
 );

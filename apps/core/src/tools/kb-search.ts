@@ -3,6 +3,8 @@ import { z } from "zod/v4";
 import { defineTool, toolRegistry } from "@acme/agents";
 import { hybridSearch, OpenAIEmbedProvider } from "@acme/rag";
 
+import { env } from "../env.js";
+
 const Input = z.object({
   query: z.string().min(1).max(2000),
   projectId: z.string().uuid().optional(),
@@ -29,12 +31,12 @@ export const kbSearchTool = defineTool({
   category: "memory",
   inputSchema: Input,
   outputSchema: Output,
-  requiredScopes: ["kb:read"],
+  requiredScopes: ["kb:search"],
   requiresApproval: false,
   costTier: "low",
   async handler({ input, ctx }) {
     const embedder = new OpenAIEmbedProvider({
-      apiKey: process.env.OPENAI_API_KEY ?? "",
+      apiKey: env.OPENAI_API_KEY ?? "",
     });
     const hits = await hybridSearch(
       {

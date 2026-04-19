@@ -7,7 +7,6 @@ import {
   getDashboardMetrics,
   recentActivity,
   followUps,
-  contacts,
   getContactById,
   getContactFullName,
 } from "~/data/mockData";
@@ -68,7 +67,7 @@ export default function Dashboard() {
 
         {/* Recent Activity */}
         <View className="mt-6 px-4">
-          <SectionHeader title="Recent Activity" actionText="View All" onAction={() => {}} />
+          <SectionHeader title="Recent Activity" actionText="View All" onAction={undefined} />
           <View className="mt-2">
             {recentActivity.slice(0, 2).map((activity) => (
               <ActivityItem

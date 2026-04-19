@@ -15,13 +15,12 @@ import {
   X,
   TrendingUp,
 } from "lucide-react-native";
-import { Avatar, StatusBadge } from "~/components";
+import { Avatar } from "~/components";
 import {
   getContactById,
   getContactInitials,
   getContactFullName,
   getFollowUpsForContact,
-  aiInsights,
 } from "~/data/mockData";
 
 function QuickActionsModal({

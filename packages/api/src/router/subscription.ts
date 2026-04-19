@@ -4,17 +4,24 @@ import { z } from "zod/v4";
 
 import { subscription } from "@acme/db/schema";
 
+import {
+  assertOrganizationAccess,
+  assertRowOrganizationAccess,
+} from "../authz.js";
+import { validateWebhookTarget } from "../webhook-security.js";
 import { protectedProcedure } from "../trpc.js";
 
 export const subscriptionRouter = {
   list: protectedProcedure
     .input(z.object({ organizationId: z.string().uuid() }))
-    .query(({ ctx, input }) =>
-      ctx.db
+    .query(async ({ ctx, input }) => {
+      await assertOrganizationAccess(ctx, input.organizationId);
+
+      return ctx.db
         .select()
         .from(subscription)
-        .where(eq(subscription.organizationId, input.organizationId)),
-    ),
+        .where(eq(subscription.organizationId, input.organizationId));
+    }),
 
   create: protectedProcedure
     .input(
@@ -27,12 +34,15 @@ export const subscriptionRouter = {
         projectIds: z.array(z.string().uuid()).optional(),
       }),
     )
-    .mutation(({ ctx, input }) =>
-      ctx.db
+    .mutation(async ({ ctx, input }) => {
+      await assertOrganizationAccess(ctx, input.organizationId);
+      const url = await validateWebhookTarget(input.url);
+
+      return ctx.db
         .insert(subscription)
         .values({
           organizationId: input.organizationId,
-          url: input.url,
+          url,
           secret: input.secret,
           description: input.description,
           eventFilter: {
@@ -40,8 +50,8 @@ export const subscriptionRouter = {
             projectIds: input.projectIds,
           },
         })
-        .returning(),
-    ),
+        .returning();
+    }),
 
   setActive: protectedProcedure
     .input(
@@ -50,10 +60,15 @@ export const subscriptionRouter = {
         active: z.boolean(),
       }),
     )
-    .mutation(({ ctx, input }) =>
-      ctx.db
+    .mutation(async ({ ctx, input }) => {
+      const row = await ctx.db.query.subscription.findFirst({
+        where: eq(subscription.id, input.id),
+      });
+      await assertRowOrganizationAccess(ctx, row?.organizationId);
+
+      return ctx.db
         .update(subscription)
         .set({ active: input.active })
-        .where(eq(subscription.id, input.id)),
-    ),
+        .where(eq(subscription.id, input.id));
+    }),
 } satisfies TRPCRouterRecord;

@@ -1,0 +1,912 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aires Headless CRM Docs</title>
+    <meta
+      name="description"
+      content="Static API and service reference for the Aires Headless CRM backend, including the Chat SDK and WhatsApp channel extension."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">A</div>
+          <div>
+            <p class="eyebrow">Aires</p>
+            <h1>Headless CRM Docs</h1>
+          </div>
+        </div>
+
+        <label class="search">
+          <span>Search</span>
+          <input id="search" type="search" placeholder="Filter sections, endpoints, tools..." />
+        </label>
+
+        <nav class="nav">
+          <a href="#overview">Overview</a>
+          <a href="#services">Services</a>
+          <a href="#auth">Auth and tenancy</a>
+          <a href="#rest">Core REST API</a>
+          <a href="#trpc">tRPC surface</a>
+          <a href="#tools">Tool catalog</a>
+          <a href="#events">Events and webhooks</a>
+          <a href="#mcp">MCP server</a>
+          <a href="#chat-sdk">Chat SDK + WhatsApp</a>
+          <a href="#data-model">Data model</a>
+          <a href="#env">Environment</a>
+          <a href="#ops">Operations</a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <a href="../HEADLESS_CRM_API_REFERENCE.md">Open Markdown reference</a>
+        </div>
+      </aside>
+
+      <main class="content">
+        <header class="hero" id="overview" data-searchable>
+          <p class="eyebrow">Backend reference</p>
+          <h2>A code-based reference for the Aires Headless CRM services</h2>
+          <p class="lede">
+            This site documents the implemented backend in
+            <code>apps/core</code>, <code>apps/workers</code>,
+            <code>apps/mcp-server</code>, and the shared <code>packages/*</code>
+            layer. Where older notes differ, the code wins.
+          </p>
+          <div class="callout">
+            <strong>Source-of-truth note:</strong> the live SSE endpoint is
+            <code>GET /events</code>. Older repo docs that mention
+            <code>/events/stream</code> are stale.
+          </div>
+          <div class="hero-actions">
+            <a class="button primary" href="#rest">Browse API</a>
+            <a class="button" href="../HEADLESS_CRM_API_REFERENCE.md">Read Markdown</a>
+          </div>
+        </header>
+
+        <section class="section" id="services" data-searchable>
+          <div class="section-heading">
+            <p class="eyebrow">Topology</p>
+            <h3>Deployable services</h3>
+          </div>
+          <div class="card-grid">
+            <article class="card">
+              <div class="card-title">
+                <span class="badge port">4000</span>
+                <h4><code>apps/core</code></h4>
+              </div>
+              <p>Main HTTP API for Better-Auth, tRPC, REST v1, tool execution, and SSE.</p>
+              <ul>
+                <li><code>/api/auth/*</code></li>
+                <li><code>/api/trpc/*</code></li>
+                <li><code>/api/v1/*</code></li>
+                <li><code>/events</code></li>
+              </ul>
+            </article>
+            <article class="card">
+              <div class="card-title">
+                <span class="badge port">4100</span>
+                <h4><code>apps/workers</code></h4>
+              </div>
+              <p>Runs BullMQ workers, drains the transactional outbox, and delivers webhooks.</p>
+              <ul>
+                <li>SendGrid email</li>
+                <li>Aircall SMS</li>
+                <li>DocuSeal contracts</li>
+                <li>Blackline reports</li>
+              </ul>
+            </article>
+            <article class="card">
+              <div class="card-title">
+                <span class="badge port">4200</span>
+                <h4><code>apps/mcp-server</code></h4>
+              </div>
+              <p>MCP-over-SSE bridge that fetches the core catalog and proxies tool execution.</p>
+              <ul>
+                <li><code>GET /sse</code></li>
+                <li><code>POST /message?sessionId=...</code></li>
+              </ul>
+            </article>
+            <article class="card">
+              <div class="card-title">
+                <span class="badge port">3000</span>
+                <h4><code>apps/nextjs</code></h4>
+              </div>
+              <p>Admin UI consumer. Uses the shared tRPC router and shared package layer.</p>
+              <ul>
+                <li>contacts</li>
+                <li>audit</li>
+                <li>webhooks</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="auth" data-searchable>
+          <div class="section-heading">
+            <p class="eyebrow">Identity</p>
+            <h3>Authentication, actors, and tenant isolation</h3>
+          </div>
+
+          <div class="split">
+            <article class="panel">
+              <h4>Actor types</h4>
+              <p><strong>User</strong> actors come from Better-Auth session cookies.</p>
+              <p><strong>Agent</strong> actors come from short-lived signed JWTs minted by the core API.</p>
+              <p>Each request receives and echoes an <code>x-request-id</code>.</p>
+            </article>
+            <article class="panel">
+              <h4>Organization resolution</h4>
+              <p>User requests can provide <code>x-organization-id</code>. If omitted, a single-org user is auto-resolved.</p>
+              <p>Agent tokens carry <code>org_id</code>, so agent requests stay org-scoped without extra input.</p>
+            </article>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Area</th>
+                  <th>Implemented behavior</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Agent token TTL</td>
+                  <td>15 minutes</td>
+                </tr>
+                <tr>
+                  <td>Revocation check</td>
+                  <td>Validated against <code>agent_token</code> plus agent status on every call</td>
+                </tr>
+                <tr>
+                  <td>Global wildcard</td>
+                  <td><code>tools:*</code></td>
+                </tr>
+                <tr>
+                  <td>Category wildcard</td>
+                  <td><code>email:*</code>, <code>contract:*</code>, and similar</td>
+                </tr>
+                <tr>
+                  <td>Project scoping</td>
+                  <td>Resolved from tool input and token <code>projectIds</code></td>
+                </tr>
+                <tr>
+                  <td>Rate limiting</td>
+                  <td>Per-agent, per-tool, 60 requests per minute</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section" id="rest" data-searchable>
+          <div class="section-heading">
+            <p class="eyebrow">Core service</p>
+            <h3>REST API</h3>
+          </div>
+
+          <div class="endpoint-list">
+            <article class="endpoint" data-searchable>
+              <div class="endpoint-head">
+                <span class="method get">GET</span>
+                <code>/healthz</code>
+              </div>
+              <p>Health check. No auth.</p>
+            </article>
+            <article class="endpoint" data-searchable>
+              <div class="endpoint-head">
+                <span class="method get">GET</span>
+                <code>/readyz</code>
+              </div>
+              <p>Readiness check. No auth.</p>
+            </article>
+            <article class="endpoint" data-searchable>
+              <div class="endpoint-head">
+                <span class="method all">ALL</span>
+                <code>/api/auth/*</code>
+              </div>
+              <p>Delegated to Better-Auth for sessions, OAuth, JWT/JWKS, and related auth endpoints.</p>
+            </article>
+            <article class="endpoint" data-searchable>
+              <div class="endpoint-head">
+                <span class="method all">ALL</span>
+                <code>/api/trpc/*</code>
+              </div>
+              <p>Shared tRPC router. Protected procedures require a session cookie.</p>
+            </article>
+            <article class="endpoint" data-searchable>
+              <div class="endpoint-head">
+                <span class="method get">GET</span>
+                <code>/api/v1/whoami</code>
+              </div>
+              <p>Returns the resolved actor context plus request id.</p>
+              <pre><code>{
+  "actor": { "type": "agent", "agentId": "...", "scopes": ["email:send"] },
+  "requestId": "..."
+}</code></pre>
+            </article>
+            <article class="endpoint" data-searchable>
+              <div class="endpoint-head">
+                <span class="method get">GET</span>
+                <code>/api/v1/contacts?organizationId=&lt;uuid&gt;</code>
+              </div>
+              <p>Authenticated REST wrapper over <code>contact.list</code>. The REST adapter currently only exposes <code>organizationId</code>.</p>
+            </article>
+            <article class="endpoint" data-searchable>
+              <div class="endpoint-head">
+                <span class="method post">POST</span>
+                <code>/api/v1/contacts</code>
+              </div>
+              <p>Authenticated REST wrapper over <code>contact.create</code>. Publishes <code>contact.created</code> on success.</p>
+              <pre><code>{
+  "organizationId": "org-uuid",
+  "email": "buyer@example.com",
+  "firstName": "Buyer",
+  "lastName": "Name"
+}</code></pre>
+            </article>
+            <article class="endpoint" data-searchable>
+              <div class="endpoint-head">
+                <span class="method get">GET</span>
+                <code>/api/v1/tools</code>
+              </div>
+              <p>Public tool catalog containing names, scopes, approval flags, categories, and cost tiers.</p>
+            </article>
+            <article class="endpoint" data-searchable>
+              <div class="endpoint-head">
+                <span class="method post">POST</span>
+                <code>/api/v1/tools/:name</code>
+              </div>
+              <p>Canonical tool execution path. Applies org resolution, scope checks, project scoping, rate limits, input validation, and audit writes.</p>
+              <div class="mini-grid">
+                <span class="chip">401 unauthenticated</span>
+                <span class="chip">403 scope or project denied</span>
+                <span class="chip">429 rate limited</span>
+                <span class="chip">500 handler error</span>
+              </div>
+            </article>
+            <article class="endpoint" data-searchable>
+              <div class="endpoint-head">
+                <span class="method post">POST</span>
+                <code>/api/v1/agents/:agentId/tokens</code>
+              </div>
+              <p>User-only endpoint to mint a short-lived agent JWT for an owned active agent.</p>
+            </article>
+            <article class="endpoint" data-searchable>
+              <div class="endpoint-head">
+                <span class="method get">GET</span>
+                <code>/events</code>
+              </div>
+              <p>Authenticated SSE stream. Events are filtered by organization and, for scoped agents, by project.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="trpc" data-searchable>
+          <div class="section-heading">
+            <p class="eyebrow">Shared router</p>
+            <h3>tRPC surface</h3>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Router</th>
+                  <th>Procedures</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>auth</code></td>
+                  <td><code>getSession</code>, <code>getSecretMessage</code></td>
+                  <td>Session inspection and starter template example</td>
+                </tr>
+                <tr>
+                  <td><code>contact</code></td>
+                  <td><code>list</code>, <code>byId</code>, <code>create</code>, <code>count</code></td>
+                  <td><code>list</code> accepts <code>cursor</code>, but current SQL does not apply it yet</td>
+                </tr>
+                <tr>
+                  <td><code>activity</code></td>
+                  <td><code>list</code>, <code>log</code></td>
+                  <td><code>log</code> publishes <code>activity.logged</code></td>
+                </tr>
+                <tr>
+                  <td><code>task</code></td>
+                  <td><code>list</code>, <code>create</code>, <code>setStatus</code></td>
+                  <td>Status enum: <code>open</code>, <code>in_progress</code>, <code>blocked</code>, <code>done</code>, <code>cancelled</code></td>
+                </tr>
+                <tr>
+                  <td><code>agent</code></td>
+                  <td><code>list</code>, <code>byId</code>, <code>create</code>, <code>tokens</code>, <code>revokeToken</code></td>
+                  <td>Human-managed agent registry</td>
+                </tr>
+                <tr>
+                  <td><code>subscription</code></td>
+                  <td><code>list</code>, <code>create</code>, <code>setActive</code></td>
+                  <td>Creates webhook subscriptions after URL validation</td>
+                </tr>
+                <tr>
+                  <td><code>tool</code></td>
+                  <td><code>catalog</code>, <code>inMemory</code></td>
+                  <td>Discovery only. Tool execution is REST-only.</td>
+                </tr>
+                <tr>
+                  <td><code>audit</code></td>
+                  <td><code>list</code>, <code>stats</code></td>
+                  <td>Audit browsing and grouped counts</td>
+                </tr>
+                <tr>
+                  <td><code>post</code></td>
+                  <td><code>all</code>, <code>byId</code>, <code>create</code>, <code>delete</code></td>
+                  <td>Starter template router retained in the repo</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section" id="tools" data-searchable>
+          <div class="section-heading">
+            <p class="eyebrow">Agent actions</p>
+            <h3>First-party tool catalog</h3>
+          </div>
+
+          <div class="card-grid">
+            <article class="card tool-card" data-searchable>
+              <div class="card-title">
+                <h4><code>email.send</code></h4>
+                <span class="badge">email:send</span>
+              </div>
+              <p>Queues transactional email through BullMQ. Workers send through SendGrid.</p>
+              <pre><code>{ "to": "buyer@example.com", "subject": "Welcome" }</code></pre>
+            </article>
+            <article class="card tool-card" data-searchable>
+              <div class="card-title">
+                <h4><code>sms.send</code></h4>
+                <span class="badge">sms:send</span>
+              </div>
+              <p>Queues outbound SMS through BullMQ. Workers send through Aircall.</p>
+              <pre><code>{ "to": "+16045551234", "body": "Confirmed" }</code></pre>
+            </article>
+            <article class="card tool-card" data-searchable>
+              <div class="card-title">
+                <h4><code>contract.send</code></h4>
+                <span class="badge danger">approval</span>
+              </div>
+              <p>High-impact DocuSeal action. Agent callers create an approval flow instead of queueing immediately.</p>
+              <pre><code>{
+  "templateId": "tpl-123",
+  "recipients": [{ "email": "buyer@example.com" }]
+}</code></pre>
+            </article>
+            <article class="card tool-card" data-searchable>
+              <div class="card-title">
+                <h4><code>report.fetch</code></h4>
+                <span class="badge">report:fetch</span>
+              </div>
+              <p>Queues a Blackline report export. Requires a resolved project context.</p>
+              <pre><code>{
+  "projectId": "project-uuid",
+  "reportType": "traffic-report",
+  "format": "csv"
+}</code></pre>
+            </article>
+            <article class="card tool-card" data-searchable>
+              <div class="card-title">
+                <h4><code>kb.search</code></h4>
+                <span class="badge">kb:search</span>
+              </div>
+              <p>Runs hybrid vector plus full-text search over tenant-scoped knowledge chunks.</p>
+              <pre><code>{ "query": "latest call notes", "topK": 8 }</code></pre>
+            </article>
+            <article class="card tool-card" data-searchable>
+              <div class="card-title">
+                <h4><code>memory.remember</code> / <code>memory.recall</code></h4>
+                <span class="badge">agent-only</span>
+              </div>
+              <p>Stores and recalls embedded per-agent memories from <code>agent_memory</code>.</p>
+              <pre><code>{ "content": "Buyer prefers SMS after 5pm" }</code></pre>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="events" data-searchable>
+          <div class="section-heading">
+            <p class="eyebrow">Streaming</p>
+            <h3>Events, outbox, SSE, and webhooks</h3>
+          </div>
+
+          <div class="split">
+            <article class="panel">
+              <h4>Event catalog</h4>
+              <ul>
+                <li><code>contact.created</code></li>
+                <li><code>contact.updated</code></li>
+                <li><code>activity.logged</code></li>
+                <li><code>email.sent</code></li>
+                <li><code>task.created</code></li>
+                <li><code>agent_run.started</code></li>
+                <li><code>agent_run.completed</code></li>
+                <li><code>approval.requested</code></li>
+              </ul>
+            </article>
+            <article class="panel">
+              <h4>Delivery chain</h4>
+              <ol>
+                <li>Transactional insert into <code>outbox_event</code></li>
+                <li>Worker drains unpublished rows</li>
+                <li>Push to Redis Stream <code>aires:events</code></li>
+                <li>Broadcast to Redis pub/sub for SSE</li>
+                <li>Fan out to matching webhook subscriptions</li>
+              </ol>
+            </article>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Webhook property</th>
+                  <th>Behavior</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Allowed protocol</td>
+                  <td><code>https</code> in production, <code>http</code> allowed in local development</td>
+                </tr>
+                <tr>
+                  <td>URL credentials</td>
+                  <td>Rejected</td>
+                </tr>
+                <tr>
+                  <td>Private IP resolution</td>
+                  <td>Rejected</td>
+                </tr>
+                <tr>
+                  <td>Headers</td>
+                  <td><code>x-aires-event</code>, <code>x-aires-signature</code>, <code>x-aires-delivery-id</code></td>
+                </tr>
+                <tr>
+                  <td>Signature</td>
+                  <td><code>sha256=&lt;hex-hmac&gt;</code> over the exact JSON body</td>
+                </tr>
+                <tr>
+                  <td>Retry policy</td>
+                  <td>Exponential backoff, up to 8 attempts, then dead-letter</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section" id="mcp" data-searchable>
+          <div class="section-heading">
+            <p class="eyebrow">AI transport</p>
+            <h3>MCP server</h3>
+          </div>
+
+          <div class="endpoint-list">
+            <article class="endpoint">
+              <div class="endpoint-head">
+                <span class="method get">GET</span>
+                <code>/sse</code>
+              </div>
+              <p>Requires an agent JWT. Opens an MCP SSE session.</p>
+            </article>
+            <article class="endpoint">
+              <div class="endpoint-head">
+                <span class="method post">POST</span>
+                <code>/message?sessionId=&lt;id&gt;</code>
+              </div>
+              <p>Receives follow-up MCP client messages for the active session.</p>
+            </article>
+          </div>
+
+          <div class="callout">
+            The MCP layer exposes tools as generic objects for transport. Actual
+            authorization, validation, and audit behavior still happens in
+            <code>apps/core</code>.
+          </div>
+        </section>
+
+        <section class="section" id="chat-sdk" data-searchable>
+          <div class="section-heading">
+            <p class="eyebrow">Channel extension</p>
+            <h3>Chat SDK and WhatsApp integration</h3>
+          </div>
+
+          <div class="callout">
+            <strong>Status:</strong> this is the recommended next integration
+            layer, not a currently running <code>aires-turbo</code> service.
+            It also supersedes older Twilio-shaped WhatsApp notes elsewhere in
+            the repo. For a Chat SDK rollout, the documented target should be
+            the official Meta Cloud adapter at
+            <a href="https://chat-sdk.dev/adapters/whatsapp">chat-sdk.dev/adapters/whatsapp</a>.
+          </div>
+
+          <div class="split">
+            <article class="panel">
+              <h4>Recommended packages</h4>
+              <ul>
+                <li><code>chat</code></li>
+                <li><code>@chat-adapter/whatsapp</code></li>
+                <li><code>@chat-adapter/state-redis</code></li>
+                <li><code>@chat-adapter/state-pg</code> for a PostgreSQL-backed variant</li>
+              </ul>
+              <p>
+                This fits the current backend because Redis is already a core
+                dependency and <code>apps/core</code> already centralizes auth,
+                audit, and tool execution.
+              </p>
+            </article>
+            <article class="panel">
+              <h4>Documented WhatsApp behavior</h4>
+              <ul>
+                <li>DMs supported</li>
+                <li>reactions supported</li>
+                <li>cards partially supported</li>
+                <li>modals not supported</li>
+                <li>streaming is buffered</li>
+                <li>message history fetch is not supported</li>
+              </ul>
+              <p>
+                Aires therefore needs first-party CRM persistence for every
+                inbound and outbound WhatsApp turn.
+              </p>
+            </article>
+          </div>
+
+          <div class="endpoint-list">
+            <article class="endpoint">
+              <div class="endpoint-head">
+                <span class="method post">APP</span>
+                <code>apps/chat-bots</code>
+              </div>
+              <p>
+                Recommended new process for Chat SDK adapter setup, webhook
+                handling, Redis-backed thread state, contact resolution, and
+                channel routing.
+              </p>
+              <pre><code>import { Chat } from "chat";
+import { createWhatsAppAdapter } from "@chat-adapter/whatsapp";
+import { createRedisState } from "@chat-adapter/state-redis";
+
+const bot = new Chat({
+  userName: process.env.WHATSAPP_BOT_USERNAME ?? "aires-sales",
+  adapters: { whatsapp: createWhatsAppAdapter() },
+  state: createRedisState(),
+});</code></pre>
+            </article>
+            <article class="endpoint">
+              <div class="endpoint-head">
+                <span class="method all">WEBHOOK</span>
+                <code>/api/webhooks/whatsapp</code>
+              </div>
+              <p>
+                Recommended endpoint shape for Meta verification handshake and
+                event delivery through the Chat SDK adapter.
+              </p>
+              <pre><code>export async function GET(request: Request) {
+  return bot.adapters.whatsapp.handleWebhook(request);
+}
+
+export async function POST(request: Request) {
+  return bot.adapters.whatsapp.handleWebhook(request);
+}</code></pre>
+            </article>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Variable</th>
+                  <th>Required</th>
+                  <th>Purpose</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>WHATSAPP_ACCESS_TOKEN</code></td>
+                  <td>yes</td>
+                  <td>Meta access token</td>
+                </tr>
+                <tr>
+                  <td><code>WHATSAPP_APP_SECRET</code></td>
+                  <td>yes</td>
+                  <td>Webhook signature verification</td>
+                </tr>
+                <tr>
+                  <td><code>WHATSAPP_PHONE_NUMBER_ID</code></td>
+                  <td>yes</td>
+                  <td>Business phone identity</td>
+                </tr>
+                <tr>
+                  <td><code>WHATSAPP_VERIFY_TOKEN</code></td>
+                  <td>yes</td>
+                  <td>Meta webhook verification handshake</td>
+                </tr>
+                <tr>
+                  <td><code>WHATSAPP_BOT_USERNAME</code></td>
+                  <td>no</td>
+                  <td>Self-message detection / bot name</td>
+                </tr>
+                <tr>
+                  <td><code>REDIS_URL</code></td>
+                  <td>yes</td>
+                  <td>Chat SDK state adapter and dedupe state</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card-grid">
+            <article class="card tool-card">
+              <div class="card-title">
+                <h4>Sales rep WhatsApp channel</h4>
+                <span class="badge">buyer-facing</span>
+              </div>
+              <p>
+                This is the external buyer or prospect thread. One WhatsApp
+                thread maps to one CRM conversation, owned by the assigned rep.
+              </p>
+              <ul>
+                <li>lead qualification</li>
+                <li>project FAQ replies</li>
+                <li>appointment scheduling</li>
+                <li>rep takeover from AI</li>
+                <li>manager escalation</li>
+              </ul>
+              <p>
+                Recommended CRM writes: create or resolve the
+                <code>contact</code>, persist the message, write
+                <code>communication.provider = "whatsapp"</code>, and extend
+                <code>activity.kind</code> with a first-class
+                <code>whatsapp</code> value.
+              </p>
+            </article>
+            <article class="card tool-card">
+              <div class="card-title">
+                <h4>Sales manager WhatsApp channel</h4>
+                <span class="badge danger">operational</span>
+              </div>
+              <p>
+                This is a manager-specific oversight lane for approvals,
+                reassignment, SLA alerts, and digest summaries.
+              </p>
+              <ul>
+                <li>approve or reject escalations</li>
+                <li>reassign hot leads</li>
+                <li>pause or resume automation</li>
+                <li>receive stale-thread alerts</li>
+                <li>receive daily summary digests</li>
+              </ul>
+              <p>
+                Recommended shape: one-to-one manager direct threads. That is
+                the safer documented model because the official adapter surface
+                explicitly documents DM support and does not document WhatsApp
+                group-thread workflows.
+              </p>
+            </article>
+          </div>
+
+          <div class="split">
+            <article class="panel">
+              <h4>UX constraints from WhatsApp</h4>
+              <ul>
+                <li>no edit after send</li>
+                <li>no delete after send</li>
+                <li>no modal workflows</li>
+                <li>streaming is buffered, not token-live</li>
+                <li>3 or fewer buttons works best</li>
+                <li>use list messages for longer action sets</li>
+                <li>persist message history in Aires because Cloud API history fetch is unavailable</li>
+              </ul>
+            </article>
+            <article class="panel">
+              <h4>Recommended future scopes and tables</h4>
+              <p>Scopes: <code>chat:read</code>, <code>chat:reply</code>, <code>chat:assign</code>, <code>chat:escalate</code>, <code>chat:approve</code>.</p>
+              <p>
+                Recommended future tables:
+                <code>channel_account</code>,
+                <code>channel_thread</code>,
+                <code>channel_message</code>,
+                <code>channel_assignment</code>,
+                <code>channel_handoff</code>,
+                <code>channel_digest_subscription</code>.
+              </p>
+            </article>
+          </div>
+
+          <div class="endpoint">
+            <div class="endpoint-head">
+              <span class="method all">EXAMPLE</span>
+              <code>Manager escalation rendered for WhatsApp</code>
+            </div>
+            <pre><code>Lead wants a same-day pricing exception for Tower 2.
+
+1. Approve exception
+2. Call lead now
+3. Reassign to me</code></pre>
+          </div>
+
+          <div class="hero-actions">
+            <a class="button" href="https://chat-sdk.dev/docs">Chat SDK docs</a>
+            <a class="button" href="https://chat-sdk.dev/adapters">Adapter directory</a>
+            <a class="button" href="https://chat-sdk.dev/adapters/whatsapp">WhatsApp adapter</a>
+          </div>
+        </section>
+
+        <section class="section" id="data-model" data-searchable>
+          <div class="section-heading">
+            <p class="eyebrow">Persistence</p>
+            <h3>Key database tables</h3>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Group</th>
+                  <th>Tables</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Identity and access</td>
+                  <td><code>organization</code>, <code>member</code>, <code>project</code>, <code>api_key</code>, <code>jwks</code>, <code>agent</code>, <code>agent_token</code>, <code>audit_log</code></td>
+                </tr>
+                <tr>
+                  <td>CRM</td>
+                  <td><code>contact</code>, <code>activity</code>, <code>communication</code>, <code>task</code>, <code>document</code></td>
+                </tr>
+                <tr>
+                  <td>Tooling and approvals</td>
+                  <td><code>tool</code>, <code>agent_run</code>, <code>approval</code></td>
+                </tr>
+                <tr>
+                  <td>Events and webhooks</td>
+                  <td><code>outbox_event</code>, <code>subscription</code>, <code>webhook_delivery</code></td>
+                </tr>
+                <tr>
+                  <td>RAG and memory</td>
+                  <td><code>kb_document</code>, <code>kb_chunk</code>, <code>agent_memory</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section" id="env" data-searchable>
+          <div class="section-heading">
+            <p class="eyebrow">Configuration</p>
+            <h3>Shared environment variables</h3>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Variable</th>
+                  <th>Required</th>
+                  <th>Used by</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>POSTGRES_URL</code></td>
+                  <td>yes</td>
+                  <td>core, workers, shared packages</td>
+                </tr>
+                <tr>
+                  <td><code>REDIS_URL</code></td>
+                  <td>yes</td>
+                  <td>core, workers, event pipeline, rate limiter</td>
+                </tr>
+                <tr>
+                  <td><code>BETTER_AUTH_SECRET</code></td>
+                  <td>yes</td>
+                  <td>core</td>
+                </tr>
+                <tr>
+                  <td><code>CORE_PUBLIC_URL</code></td>
+                  <td>yes</td>
+                  <td>core</td>
+                </tr>
+                <tr>
+                  <td><code>CORE_INTERNAL_URL</code></td>
+                  <td>yes for internal consumers</td>
+                  <td>mcp-server, core internals</td>
+                </tr>
+                <tr>
+                  <td><code>OPENAI_API_KEY</code></td>
+                  <td>optional</td>
+                  <td>RAG tools</td>
+                </tr>
+                <tr>
+                  <td><code>SENDGRID_API_KEY</code></td>
+                  <td>optional</td>
+                  <td>email worker</td>
+                </tr>
+                <tr>
+                  <td><code>AIRCALL_API_ID</code> / <code>AIRCALL_API_TOKEN</code></td>
+                  <td>optional</td>
+                  <td>SMS worker</td>
+                </tr>
+                <tr>
+                  <td><code>DOCUSEAL_API_KEY</code></td>
+                  <td>optional</td>
+                  <td>contracts worker</td>
+                </tr>
+                <tr>
+                  <td><code>BLACKLINE_API_TOKEN</code></td>
+                  <td>optional</td>
+                  <td>reports worker</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section" id="ops" data-searchable>
+          <div class="section-heading">
+            <p class="eyebrow">Operations</p>
+            <h3>Local boot</h3>
+          </div>
+
+          <pre><code>pnpm install
+cp .env.example .env
+pnpm -F @acme/db push
+
+pnpm -F @acme/core dev
+pnpm -F @acme/workers dev
+pnpm -F @acme/mcp-server dev
+pnpm -F @acme/nextjs dev</code></pre>
+
+          <div class="split">
+            <article class="panel">
+              <h4>Health checks</h4>
+              <pre><code>curl http://localhost:4000/healthz
+curl http://localhost:4100/healthz
+curl http://localhost:4200/healthz</code></pre>
+            </article>
+            <article class="panel">
+              <h4>Implementation notes</h4>
+              <ul>
+                <li><code>GET /api/v1/tools</code> is public</li>
+                <li>Tool execution is REST-only, not tRPC</li>
+                <li><code>memory.*</code> tools are agent-only by handler rule</li>
+                <li><code>contract.send</code> approval differs by caller type</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const search = document.getElementById("search");
+      const nodes = [...document.querySelectorAll("[data-searchable]")];
+
+      function normalize(value) {
+        return value.toLowerCase().replace(/\s+/g, " ").trim();
+      }
+
+      search.addEventListener("input", () => {
+        const query = normalize(search.value);
+        for (const node of nodes) {
+          const haystack = normalize(node.textContent || "");
+          node.classList.toggle("is-hidden", Boolean(query) && !haystack.includes(query));
+        }
+      });
+    </script>
+  </body>
+</html>

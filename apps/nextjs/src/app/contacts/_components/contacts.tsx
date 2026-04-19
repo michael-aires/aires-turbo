@@ -51,10 +51,16 @@ export function CreateContactForm({ organizationId }: { organizationId: string }
       source: "manual",
       status: "new",
     },
-    validators: {
-      onSubmit: CreateContactSchema,
+    onSubmit: ({ value }) => {
+      const parsed = CreateContactSchema.safeParse(
+        normalizeCreateContactInput(value),
+      );
+      if (!parsed.success) {
+        toast.error("Please correct the form and try again");
+        return;
+      }
+      createContact.mutate(parsed.data);
     },
-    onSubmit: (data) => createContact.mutate(data.value),
   });
 
   if (!open) {
@@ -164,4 +170,24 @@ export function ContactListSkeleton() {
   return (
     <div className="bg-muted/30 h-64 animate-pulse rounded-lg border" />
   );
+}
+
+function normalizeCreateContactInput(input: {
+  organizationId: string;
+  email: string;
+  phone: string;
+  firstName: string;
+  lastName: string;
+  source: string;
+  status: string;
+}) {
+  return {
+    organizationId: input.organizationId,
+    email: input.email || undefined,
+    phone: input.phone || undefined,
+    firstName: input.firstName || undefined,
+    lastName: input.lastName || undefined,
+    source: input.source || undefined,
+    status: input.status || undefined,
+  };
 }

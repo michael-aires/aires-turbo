@@ -11,7 +11,7 @@ import { startWebhookDeliverer } from "./webhook-deliverer.js";
 startTelemetry("aires-workers");
 const logger = createLogger("aires-workers");
 
-async function main() {
+function main() {
   const health = startHealthServer();
   const stopOutbox = startOutboxDispatcher();
   const stopWebhook = startWebhookDeliverer();
@@ -30,8 +30,12 @@ async function main() {
     await Promise.all(workers.map((w) => w.close()));
     health.close(() => process.exit(0));
   };
-  process.on("SIGTERM", shutdown);
-  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", () => {
+    void shutdown();
+  });
+  process.on("SIGINT", () => {
+    void shutdown();
+  });
 }
 
-void main();
+main();

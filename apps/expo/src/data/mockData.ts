@@ -342,7 +342,8 @@ export function formatBudgetRange(min?: number, max?: number): string {
   };
   if (min && max) return `${formatNum(min)}-${formatNum(max)}`;
   if (min) return `${formatNum(min)}+`;
-  return `Up to ${formatNum(max!)}`;
+  if (max) return `Up to ${formatNum(max)}`;
+  return "Not specified";
 }
 
 export function formatTimeAgo(date: Date): string {

@@ -5,43 +5,53 @@ import { member } from "@acme/db/schema";
 
 import type { ActorContext } from "./index.js";
 
-const USER_ORG_CACHE_MAX = 5_000;
-const userOrgCache = new Map<string, string>();
-
 /**
  * Resolve an actor's `organizationId`:
- *   - agent / api-key actors: the id is baked into the token, no lookup.
- *   - user actors: one cached lookup into `member` (primary org).
+ *   - agent actors: the id is baked into the token, no lookup.
+ *   - user actors:
+ *     - explicit org selection must match a membership row
+ *     - implicit selection succeeds only when the user belongs to exactly one org
  *
- * Returns `undefined` only if a user has no org membership yet.
+ * Returns `undefined` when the actor has no organization, or when a user has
+ * multiple orgs but did not choose one explicitly.
  */
 export async function resolveOrgId(
   actor: ActorContext,
+  requestedOrgId?: string,
 ): Promise<string | undefined> {
   if (actor.orgId) return actor.orgId;
   if (actor.type !== "user") return undefined;
 
-  const cached = userOrgCache.get(actor.userId);
-  if (cached) return cached;
+  const orgIds = await listUserOrganizationIds(actor.userId);
+  if (requestedOrgId) {
+    return orgIds.includes(requestedOrgId) ? requestedOrgId : undefined;
+  }
 
+  return orgIds.length === 1 ? orgIds[0] : undefined;
+}
+
+export async function listUserOrganizationIds(userId: string): Promise<string[]> {
   const rows = await db
     .select({ organizationId: member.organizationId })
     .from(member)
-    .where(eq(member.userId, actor.userId))
-    .limit(1);
+    .where(eq(member.userId, userId));
 
-  const orgId = rows[0]?.organizationId;
-  if (!orgId) return undefined;
+  return rows.map((row) => row.organizationId);
+}
 
-  if (userOrgCache.size >= USER_ORG_CACHE_MAX) {
-    const firstKey = userOrgCache.keys().next().value;
-    if (firstKey) userOrgCache.delete(firstKey);
-  }
-  userOrgCache.set(actor.userId, orgId);
-  return orgId;
+export async function hasUserOrganizationAccess(
+  userId: string,
+  organizationId: string,
+): Promise<boolean> {
+  const rows = await db
+    .select({ organizationId: member.organizationId })
+    .from(member)
+    .where(eq(member.userId, userId));
+
+  return rows.some((row) => row.organizationId === organizationId);
 }
 
 /** Test-only: drop the in-process cache. */
 export function clearOrgResolverCache(): void {
-  userOrgCache.clear();
+  // Compatibility no-op. The resolver no longer keeps mutable in-process state.
 }

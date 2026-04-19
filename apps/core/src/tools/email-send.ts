@@ -5,13 +5,15 @@ import { z } from "zod/v4";
 import { defineTool, toolRegistry, writeAudit } from "@acme/agents";
 import type { ActorContext } from "@acme/auth";
 
+import { env } from "../env.js";
+
 /**
  * `email.send` — first reference tool.
  *
  * The core service enqueues the job; `apps/workers` runs the SendGrid call.
  * Returning the job id lets agents correlate later webhook delivery events.
  */
-const connection = new IORedis(process.env.REDIS_URL!, {
+const connection = new IORedis(env.REDIS_URL, {
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
 });

@@ -5,8 +5,11 @@ import { z } from "zod/v4";
 import { defineTool, requestApproval, toolRegistry, writeAudit } from "@acme/agents";
 import { db } from "@acme/db/client";
 import { agentRun } from "@acme/db/schema";
+import { ContractSignRequestSchema } from "@acme/integrations";
 
-const connection = new IORedis(process.env.REDIS_URL!, {
+import { env } from "../env.js";
+
+const connection = new IORedis(env.REDIS_URL, {
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
 });
@@ -40,10 +43,27 @@ export const contractSendTool = defineTool({
     approvalId: z.string().optional(),
     agentRunId: z.string().optional(),
   }),
-  requiredScopes: ["contracts:send"],
+  requiredScopes: ["contract:send"],
   requiresApproval: true,
   costTier: "high",
   async handler({ input, ctx }) {
+    const jobInput = ContractSignRequestSchema.parse({
+      templateId: input.templateId,
+      submitters: input.recipients.map((recipient) => ({
+        email: recipient.email,
+        name: recipient.name,
+        role: recipient.role,
+      })),
+      metadata: input.metadata
+        ? Object.fromEntries(
+            Object.entries(input.metadata).map(([key, value]) => [
+              key,
+              String(value),
+            ]),
+          )
+        : undefined,
+    });
+
     if (ctx.actor.type === "agent") {
       const [run] = await db
         .insert(agentRun)
@@ -78,7 +98,7 @@ export const contractSendTool = defineTool({
       };
     }
 
-    const job = await contractQueue.add("create", input);
+    const job = await contractQueue.add("create", jobInput);
     await writeAudit(ctx, {
       tool: "contract.send",
       action: "contract.send",

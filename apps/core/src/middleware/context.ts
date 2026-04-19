@@ -1,14 +1,15 @@
-import type { MiddlewareHandler } from "hono";
+import type { Context, MiddlewareHandler } from "hono";
 
 import { verifyAgentJwt } from "@acme/auth/verify-agent-jwt";
 import type { ActorContext } from "@acme/auth";
+import { resolveOrgId } from "@acme/auth/org-resolver";
 
 import { auth } from "../auth.js";
 import { env } from "../env.js";
 
 export interface CoreHonoEnv {
   Variables: {
-    actor: ActorContext;
+    actor: ActorContext | undefined;
     requestId: string;
   };
 }
@@ -43,11 +44,24 @@ export const authContext: MiddlewareHandler<CoreHonoEnv> = async (c, next) => {
     .catch(() => null);
 
   if (session?.user) {
-    c.set("actor", {
+    const actor: ActorContext = {
       type: "user",
       userId: session.user.id,
       sessionId: session.session.id,
-    });
+    };
+
+    const requestedOrgId = c.req.header("x-organization-id");
+    if (requestedOrgId) {
+      const resolvedOrgId = await resolveOrgId(actor, requestedOrgId);
+      if (!resolvedOrgId) {
+        return c.json({ error: "organization access denied" }, 403);
+      }
+      actor.orgId = resolvedOrgId;
+    } else {
+      actor.orgId = await resolveOrgId(actor);
+    }
+
+    c.set("actor", actor);
     return next();
   }
 
@@ -61,3 +75,11 @@ export const requireActor: MiddlewareHandler<CoreHonoEnv> = async (c, next) => {
   }
   return next();
 };
+
+export function getRequiredActor(c: Context<CoreHonoEnv>): ActorContext {
+  const actor = c.get("actor");
+  if (!actor) {
+    throw new Error("authenticated actor missing from request context");
+  }
+  return actor;
+}

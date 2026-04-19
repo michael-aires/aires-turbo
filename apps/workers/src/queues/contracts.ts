@@ -1,6 +1,9 @@
 import { Worker } from "bullmq";
 
-import { DocuSealAdapter } from "@acme/integrations";
+import {
+  ContractSignRequestSchema,
+  DocuSealAdapter,
+} from "@acme/integrations";
 import type { ContractSignRequest } from "@acme/integrations";
 import { createLogger } from "@acme/observability";
 
@@ -21,7 +24,8 @@ export function startContractsWorker() {
   return new Worker<ContractSignRequest>(
     "contracts",
     async (job) => {
-      const result = await adapter.createSubmission(job.data);
+      const input = ContractSignRequestSchema.parse(job.data);
+      const result = await adapter.createSubmission(input);
       logger.info({
         jobId: job.id,
         submissionId: result.submissionId,

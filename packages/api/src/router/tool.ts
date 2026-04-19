@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { toolRegistry } from "@acme/agents/tools";
 import { tool as toolTable } from "@acme/db/schema";
 
-import { publicProcedure } from "../trpc.js";
+import { protectedProcedure } from "../trpc.js";
 
 /**
  * Catalog-only tRPC surface. Tool execution MUST go through the authenticated
@@ -13,12 +13,12 @@ import { publicProcedure } from "../trpc.js";
  */
 export const toolRouter = {
   /** Persisted catalog for the Admin UI. */
-  catalog: publicProcedure.query(({ ctx }) =>
+  catalog: protectedProcedure.query(({ ctx }) =>
     ctx.db.select().from(toolTable).where(eq(toolTable.enabled, true)),
   ),
 
   /** In-memory registry snapshot — used by MCP server on boot. */
-  inMemory: publicProcedure.query(() =>
+  inMemory: protectedProcedure.query(() =>
     toolRegistry.list().map((t) => ({
       name: t.name,
       displayName: t.displayName,

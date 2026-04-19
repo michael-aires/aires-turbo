@@ -4,7 +4,9 @@ import { z } from "zod/v4";
 
 import { defineTool, toolRegistry, writeAudit } from "@acme/agents";
 
-const connection = new IORedis(process.env.REDIS_URL!, {
+import { env } from "../env.js";
+
+const connection = new IORedis(env.REDIS_URL, {
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
 });

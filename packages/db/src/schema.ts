@@ -1,31 +1,8 @@
-import { sql } from "drizzle-orm";
-import { pgTable } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
-
-export const Post = pgTable("post", (t) => ({
-  id: t.uuid().notNull().primaryKey().defaultRandom(),
-  title: t.varchar({ length: 256 }).notNull(),
-  content: t.text().notNull(),
-  createdAt: t.timestamp().defaultNow().notNull(),
-  updatedAt: t
-    .timestamp({ mode: "date", withTimezone: true })
-    .$onUpdateFn(() => sql`now()`),
-}));
-
-export const CreatePostSchema = createInsertSchema(Post, {
-  title: z.string().max(256),
-  content: z.string().max(256),
-}).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export * from "./auth-schema";
-export * from "./schema/identity";
-export * from "./schema/crm";
-export * from "./schema/events";
-export * from "./schema/agents";
-export * from "./schema/rag";
-export * from "./schema/sync";
+export * from "./auth-schema.js";
+export * from "./schema/identity.js";
+export * from "./schema/crm.js";
+export * from "./schema/events.js";
+export * from "./schema/agents.js";
+export * from "./schema/rag.js";
+export * from "./schema/sync.js";
+export * from "./schema/chat.js";

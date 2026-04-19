@@ -119,7 +119,7 @@ export default function ContactDetail() {
             {contact.company && (
               <InfoCard icon={Building2} label="Company" value={contact.company} />
             )}
-            {(contact.budgetMin || contact.budgetMax) && (
+            {(contact.budgetMin ?? contact.budgetMax) && (
               <InfoCard
                 icon={DollarSign}
                 label="Budget Range"

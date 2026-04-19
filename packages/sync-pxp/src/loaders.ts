@@ -8,7 +8,6 @@ import {
   project,
   pxpBootstrapMap,
 } from "@acme/db/schema";
-import { sql } from "@acme/db";
 
 import { uuidFromMongoId } from "./uuid.js";
 
@@ -37,7 +36,7 @@ export async function loadProjects(
     .collection("projects")
     .find({}, { projection: { _id: 1, name: 1, slug: 1 } });
   let imported = 0;
-  let skipped = 0;
+  const skipped = 0;
 
   for await (const doc of cursor) {
     const pxpId = String(doc._id);
@@ -89,7 +88,7 @@ export async function loadContacts(
     },
   );
   let imported = 0;
-  let skipped = 0;
+  const skipped = 0;
 
   for await (const doc of cursor) {
     const pxpId = String(doc._id);
@@ -137,7 +136,7 @@ export async function loadActivities(
   const start = Date.now();
   const collections = ["activities", "calls", "sms", "activityNotes"];
   let imported = 0;
-  let skipped = 0;
+  const skipped = 0;
 
   for (const name of collections) {
     const collection = ctx.mongo.collection(name);
@@ -151,6 +150,13 @@ export async function loadActivities(
       const contactPgUuid = doc.contact
         ? uuidFromMongoId("contact", String(doc.contact))
         : null;
+      const occurredAt = toDate(doc.createdAt);
+      const summary =
+        typeof doc.summary === "string"
+          ? doc.summary
+          : typeof doc.body === "string"
+            ? doc.body
+            : null;
 
       if (ctx.dryRun) {
         imported += 1;
@@ -167,8 +173,8 @@ export async function loadActivities(
           direction: doc.direction === "inbound" ? "inbound" : "outbound",
           actorType: "system",
           actorId: "pxp-bootstrap",
-          occurredAt: doc.createdAt ? new Date(doc.createdAt) : new Date(),
-          summary: doc.summary ?? doc.body ?? null,
+          occurredAt: occurredAt ?? new Date(),
+          summary,
           payload: doc,
         })
         .onConflictDoNothing({ target: activity.id });
@@ -228,5 +234,13 @@ async function recordMap(
     .onConflictDoNothing({
       target: [pxpBootstrapMap.entityType, pxpBootstrapMap.pxpMongoId],
     });
-  void sql;
+}
+
+function toDate(value: unknown): Date | null {
+  if (value instanceof Date) return value;
+  if (typeof value === "string" || typeof value === "number") {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  return null;
 }

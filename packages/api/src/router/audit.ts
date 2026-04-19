@@ -4,6 +4,7 @@ import { z } from "zod/v4";
 
 import { auditLog } from "@acme/db/schema";
 
+import { assertOrganizationAccess } from "../authz.js";
 import { protectedProcedure } from "../trpc.js";
 
 export const auditRouter = {
@@ -18,6 +19,8 @@ export const auditRouter = {
       }),
     )
     .query(async ({ ctx, input }) => {
+      await assertOrganizationAccess(ctx, input.organizationId);
+
       const filters = [eq(auditLog.organizationId, input.organizationId)];
       if (input.actorType) filters.push(eq(auditLog.actorType, input.actorType));
       if (input.tool) filters.push(eq(auditLog.tool, input.tool));
@@ -34,6 +37,8 @@ export const auditRouter = {
   stats: protectedProcedure
     .input(z.object({ organizationId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      await assertOrganizationAccess(ctx, input.organizationId);
+
       const rows = await ctx.db
         .select({
           result: auditLog.result,

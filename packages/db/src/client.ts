@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
-import * as schema from "./schema";
+import * as schema from "./schema.js";
 
 const connectionString =
   process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
@@ -21,3 +21,11 @@ export const db = drizzle(pool, {
   schema,
   casing: "snake_case",
 });
+
+export type DBClient = typeof db;
+export type DBTransaction = Parameters<DBClient["transaction"]>[0] extends (
+  tx: infer T,
+  ...args: never[]
+) => unknown
+  ? T
+  : never;

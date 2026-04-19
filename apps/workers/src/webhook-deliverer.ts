@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { deliverNext } from "@acme/events";
 import { createLogger } from "@acme/observability";
 
@@ -10,10 +12,11 @@ const logger = createLogger("worker.webhook");
  */
 export function startWebhookDeliverer() {
   let stopped = false;
+  const consumerId = `webhook-${randomUUID()}`;
   const loop = async () => {
     while (!stopped) {
       try {
-        const result = await deliverNext();
+        const result = await deliverNext({ consumerId });
         if (!result) {
           await new Promise((resolve) => setTimeout(resolve, 2_000));
           continue;

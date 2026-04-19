@@ -3,6 +3,8 @@ import { z } from "zod/v4";
 import { defineTool, toolRegistry } from "@acme/agents";
 import { OpenAIEmbedProvider, recall, remember } from "@acme/rag";
 
+import { env } from "../env.js";
+
 const RememberInput = z.object({
   content: z.string().min(1).max(4000),
   namespace: z.string().max(128).optional(),
@@ -25,7 +27,7 @@ export const memoryRememberTool = defineTool({
       throw new Error("memory.remember is only callable by agents");
     }
     const embedder = new OpenAIEmbedProvider({
-      apiKey: process.env.OPENAI_API_KEY ?? "",
+      apiKey: env.OPENAI_API_KEY ?? "",
     });
     return remember(
       {
@@ -69,7 +71,7 @@ export const memoryRecallTool = defineTool({
       throw new Error("memory.recall is only callable by agents");
     }
     const embedder = new OpenAIEmbedProvider({
-      apiKey: process.env.OPENAI_API_KEY ?? "",
+      apiKey: env.OPENAI_API_KEY ?? "",
     });
     const hits = await recall({ agentId: ctx.actor.agentId, ...input }, embedder);
     return { hits };

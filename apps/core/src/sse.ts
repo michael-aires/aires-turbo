@@ -2,15 +2,24 @@ import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 
 import { subscribeBroadcast } from "@acme/events";
+import { listUserOrganizationIds } from "@acme/auth/org-resolver";
 
+import { canActorAccessEvent } from "./lib/event-visibility.js";
 import type { CoreHonoEnv } from "./middleware/context.js";
-import { requireActor } from "./middleware/context.js";
+import { getRequiredActor, requireActor } from "./middleware/context.js";
 
 export const sseRouter = new Hono<CoreHonoEnv>()
   .use(requireActor)
-  .get("/events", (c) => {
+  .get("/", async (c) => {
+    const actor = getRequiredActor(c);
+    const userOrganizationIds =
+      actor.type === "user"
+        ? await listUserOrganizationIds(actor.userId)
+        : [];
+
     return streamSSE(c, async (stream) => {
       const unsub = subscribeBroadcast((envelope) => {
+        if (!canActorAccessEvent(actor, envelope, userOrganizationIds)) return;
         void stream.writeSSE({
           id: envelope.id,
           event: envelope.type,

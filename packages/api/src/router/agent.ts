@@ -1,27 +1,40 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 
 import { agent, agentToken } from "@acme/db/schema";
 
+import {
+  assertOrganizationAccess,
+  assertRowOrganizationAccess,
+} from "../authz.js";
 import { protectedProcedure } from "../trpc.js";
 
 export const agentRouter = {
   list: protectedProcedure
     .input(z.object({ organizationId: z.string().uuid() }))
-    .query(({ ctx, input }) =>
-      ctx.db
+    .query(async ({ ctx, input }) => {
+      await assertOrganizationAccess(ctx, input.organizationId);
+
+      return ctx.db
         .select()
         .from(agent)
         .where(eq(agent.organizationId, input.organizationId))
-        .orderBy(desc(agent.createdAt)),
-    ),
+        .orderBy(desc(agent.createdAt));
+    }),
 
   byId: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
-    .query(({ ctx, input }) =>
-      ctx.db.query.agent.findFirst({ where: eq(agent.id, input.id) }),
-    ),
+    .query(async ({ ctx, input }) => {
+      const row = await ctx.db.query.agent.findFirst({
+        where: eq(agent.id, input.id),
+      });
+
+      if (!row) return null;
+      await assertRowOrganizationAccess(ctx, row.organizationId);
+      return row;
+    }),
 
   create: protectedProcedure
     .input(
@@ -39,7 +52,8 @@ export const agentRouter = {
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user) throw new Error("unauthenticated");
+      await assertOrganizationAccess(ctx, input.organizationId);
+
       const [row] = await ctx.db
         .insert(agent)
         .values({
@@ -60,20 +74,41 @@ export const agentRouter = {
 
   tokens: protectedProcedure
     .input(z.object({ agentId: z.string().uuid() }))
-    .query(({ ctx, input }) =>
-      ctx.db
+    .query(async ({ ctx, input }) => {
+      const row = await ctx.db.query.agent.findFirst({
+        where: eq(agent.id, input.agentId),
+      });
+      await assertRowOrganizationAccess(ctx, row?.organizationId);
+
+      return ctx.db
         .select()
         .from(agentToken)
         .where(eq(agentToken.agentId, input.agentId))
-        .orderBy(desc(agentToken.issuedAt)),
-    ),
+        .orderBy(desc(agentToken.issuedAt));
+    }),
 
   revokeToken: protectedProcedure
     .input(z.object({ tokenId: z.string().uuid() }))
-    .mutation(({ ctx, input }) =>
-      ctx.db
+    .mutation(async ({ ctx, input }) => {
+      const rows = await ctx.db
+        .select({
+          tokenId: agentToken.id,
+          organizationId: agent.organizationId,
+        })
+        .from(agentToken)
+        .innerJoin(agent, eq(agent.id, agentToken.agentId))
+        .where(eq(agentToken.id, input.tokenId))
+        .limit(1);
+
+      const row = rows[0];
+      if (!row) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "token not found" });
+      }
+      await assertRowOrganizationAccess(ctx, row.organizationId);
+
+      return ctx.db
         .update(agentToken)
         .set({ revokedAt: new Date() })
-        .where(eq(agentToken.id, input.tokenId)),
-    ),
+        .where(eq(agentToken.id, input.tokenId));
+    }),
 } satisfies TRPCRouterRecord;
