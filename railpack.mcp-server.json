@@ -4,7 +4,6 @@
   "steps": {
     "build": {
       "commands": [
-        "...",
         "pnpm turbo run build --filter=@acme/mcp-server..."
       ]
     }
