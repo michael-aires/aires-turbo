@@ -8,7 +8,7 @@
     "dev": "pnpm with-env tsx watch src/main.ts",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint --flag unstable_native_nodejs_ts_config",
-    "start": "node --enable-source-maps dist/main.js",
+    "start": "tsx src/main.ts",
     "typecheck": "tsc --noEmit",
     "with-env": "dotenv -e ../../.env --"
   },
@@ -21,6 +21,7 @@
     "bullmq": "^5.34.3",
     "drizzle-orm": "^0.44.7",
     "ioredis": "^5.4.2",
+    "tsx": "^4.19.2",
     "zod": "catalog:"
   },
   "devDependencies": {
@@ -31,7 +32,6 @@
     "dotenv-cli": "^10.0.0",
     "eslint": "catalog:",
     "prettier": "catalog:",
-    "tsx": "^4.19.2",
     "typescript": "catalog:"
   },
   "prettier": "@acme/prettier-config"
