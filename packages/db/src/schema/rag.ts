@@ -6,7 +6,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
-import { agent, organization, project } from "./identity.js";
+import { agent, organization, project } from "./identity";
 
 // pgvector custom type. Stored as native `vector(N)`; read as number[].
 // https://github.com/pgvector/pgvector

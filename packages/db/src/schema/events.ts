@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import { index, pgTable, uniqueIndex } from "drizzle-orm/pg-core";
 
-import { organization } from "./identity.js";
+import { organization } from "./identity";
 
 export const outboxEvent = pgTable(
   "outbox_event",

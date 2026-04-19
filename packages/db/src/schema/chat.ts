@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import { index, pgTable, uniqueIndex } from "drizzle-orm/pg-core";
 
 import { user } from "../auth-schema.js";
-import { organization } from "./identity.js";
+import { organization } from "./identity";
 
 /**
  * Lightweight index of chat threads so the UI can show a "recent threads"
