@@ -4,7 +4,7 @@
   "steps": {
     "build": {
       "commands": [
-        "pnpm turbo run build --filter=@acme/mcp-server..."
+        "echo 'skip compile — runtime uses tsx on src/*.ts'"
       ]
     }
   },
