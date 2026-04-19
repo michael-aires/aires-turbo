@@ -1,0 +1,15 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "node",
+  "steps": {
+    "build": {
+      "commands": [
+        "...",
+        "pnpm turbo run build --filter=@acme/workers..."
+      ]
+    }
+  },
+  "deploy": {
+    "startCommand": "pnpm -F @acme/workers start"
+  }
+}
