@@ -1,0 +1,14 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "node",
+  "steps": {
+    "build": {
+      "commands": [
+        "echo 'skip compile — runtime uses tsx on src/*.ts'"
+      ]
+    }
+  },
+  "deploy": {
+    "startCommand": "pnpm -F @acme/agent-harness start"
+  }
+}

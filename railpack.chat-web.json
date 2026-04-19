@@ -1,0 +1,15 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "node",
+  "steps": {
+    "build": {
+      "commands": [
+        "pnpm -F @acme/chat-web... install --frozen-lockfile",
+        "pnpm -F @acme/chat-web build"
+      ]
+    }
+  },
+  "deploy": {
+    "startCommand": "pnpm -F @acme/chat-web start"
+  }
+}
