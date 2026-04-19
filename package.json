@@ -13,6 +13,8 @@
     "auth:generate": "pnpm -F @acme/auth generate",
     "db:push": "turbo -F @acme/db push",
     "db:studio": "turbo -F @acme/db studio",
+    "pxp:bootstrap:dry": "pnpm -F @acme/sync-pxp bootstrap --dry-run",
+    "pxp:bootstrap": "pnpm -F @acme/sync-pxp bootstrap",
     "dev": "turbo watch dev --continue",
     "dev:next": "turbo watch dev -F @acme/nextjs...",
     "format": "turbo run format --continue -- --cache --cache-location .cache/.prettiercache",

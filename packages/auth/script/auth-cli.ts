@@ -10,7 +10,7 @@
  * For actual authentication usage, import from "../src/index.ts" instead.
  */
 
-import { initAuth } from "../src/index";
+import { initAuth } from "../src/index.js";
 
 /**
  * CLI-only authentication configuration for schema generation.
@@ -24,4 +24,6 @@ export const auth = initAuth({
   secret: "secret",
   discordClientId: "1234567890",
   discordClientSecret: "1234567890",
+  googleClientId: "1234567890",
+  googleClientSecret: "1234567890",
 });

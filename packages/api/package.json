@@ -18,10 +18,13 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
+    "@acme/agents": "workspace:*",
     "@acme/auth": "workspace:*",
     "@acme/db": "workspace:*",
+    "@acme/events": "workspace:*",
     "@acme/validators": "workspace:*",
     "@trpc/server": "catalog:",
+    "drizzle-orm": "^0.44.7",
     "superjson": "2.2.3",
     "zod": "catalog:"
   },

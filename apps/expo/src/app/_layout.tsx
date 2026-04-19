@@ -1,4 +1,3 @@
-import { useColorScheme } from "react-native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -10,24 +9,55 @@ import "../styles.css";
 // This is the main layout of the app
 // It wraps your pages with the providers they need
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   return (
     <QueryClientProvider client={queryClient}>
-      {/*
-          The Stack component displays the current page.
-          It also allows you to configure your screens 
-        */}
       <Stack
         screenOptions={{
-          headerStyle: {
-            backgroundColor: "#c03484",
-          },
+          headerShown: false,
           contentStyle: {
-            backgroundColor: colorScheme == "dark" ? "#09090B" : "#FFFFFF",
+            backgroundColor: "#0A0A0A",
           },
+          animation: "slide_from_right",
         }}
-      />
-      <StatusBar />
+      >
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="contact/[id]"
+          options={{
+            headerShown: false,
+            presentation: "card",
+          }}
+        />
+        <Stack.Screen
+          name="contact/add"
+          options={{
+            headerShown: false,
+            presentation: "modal",
+          }}
+        />
+        <Stack.Screen
+          name="focus-mode/index"
+          options={{
+            headerShown: false,
+            presentation: "card",
+          }}
+        />
+        <Stack.Screen
+          name="focus-mode/[id]"
+          options={{
+            headerShown: false,
+            presentation: "card",
+          }}
+        />
+        <Stack.Screen
+          name="call/[id]"
+          options={{
+            headerShown: false,
+            presentation: "fullScreenModal",
+          }}
+        />
+      </Stack>
+      <StatusBar style="light" />
     </QueryClientProvider>
   );
 }

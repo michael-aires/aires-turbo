@@ -6,6 +6,8 @@
     ".": "./src/index.ts",
     "./middleware": "./src/middleware.ts",
     "./client": "./src/client.ts",
+    "./verify-agent-jwt": "./src/verify-agent-jwt.ts",
+    "./org-resolver": "./src/org-resolver.ts",
     "./env": "./env.ts"
   },
   "license": "MIT",
@@ -21,6 +23,8 @@
     "@better-auth/expo": "catalog:",
     "@t3-oss/env-core": "^0.13.8",
     "better-auth": "catalog:",
+    "drizzle-orm": "^0.44.7",
+    "jose": "^5.9.6",
     "zod": "catalog:"
   },
   "devDependencies": {
