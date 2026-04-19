@@ -22,10 +22,10 @@ export const CreatePostSchema = createInsertSchema(Post, {
   updatedAt: true,
 });
 
-export * from "./auth-schema.js";
-export * from "./schema/identity.js";
-export * from "./schema/crm.js";
-export * from "./schema/events.js";
-export * from "./schema/agents.js";
-export * from "./schema/rag.js";
-export * from "./schema/sync.js";
+export * from "./auth-schema";
+export * from "./schema/identity";
+export * from "./schema/crm";
+export * from "./schema/events";
+export * from "./schema/agents";
+export * from "./schema/rag";
+export * from "./schema/sync";
