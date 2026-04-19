@@ -1,5 +1,10 @@
 import { pgTable } from "drizzle-orm/pg-core";
 
+// Better-Auth 1.4 schema. Columns beyond the core user/session set come from
+// the plugin stack in packages/auth/src/index.ts (admin, organization, apiKey).
+// Keep these tables in sync with the Better-Auth docs + `npx @better-auth/cli
+// generate` output.
+
 export const user = pgTable("user", (t) => ({
   id: t.text().primaryKey(),
   name: t.text().notNull(),
@@ -8,6 +13,11 @@ export const user = pgTable("user", (t) => ({
   image: t.text(),
   createdAt: t.timestamp().notNull(),
   updatedAt: t.timestamp().notNull(),
+  // admin() plugin
+  role: t.text(),
+  banned: t.boolean(),
+  banReason: t.text(),
+  banExpires: t.timestamp(),
 }));
 
 export const session = pgTable("session", (t) => ({
@@ -22,6 +32,10 @@ export const session = pgTable("session", (t) => ({
     .text()
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
+  // admin() plugin
+  impersonatedBy: t.text(),
+  // organization() plugin
+  activeOrganizationId: t.text(),
 }));
 
 export const account = pgTable("account", (t) => ({

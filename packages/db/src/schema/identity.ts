@@ -7,6 +7,9 @@ export const organization = pgTable("organization", (t) => ({
   id: t.uuid().primaryKey().defaultRandom(),
   name: t.varchar({ length: 256 }).notNull(),
   slug: t.varchar({ length: 128 }).notNull().unique(),
+  // organization() plugin
+  logo: t.text(),
+  metadata: t.text(),
   createdAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
   updatedAt: t
     .timestamp({ withTimezone: true })
