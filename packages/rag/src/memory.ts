@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 import { db } from "@acme/db/client";
 import { agentMemory } from "@acme/db/schema";
 
-import type { EmbedProvider } from "./embed.js";
+import type { EmbedProvider } from "./embed";
 
 export interface RememberInput {
   agentId: string;

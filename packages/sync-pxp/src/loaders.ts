@@ -9,7 +9,7 @@ import {
   pxpBootstrapMap,
 } from "@acme/db/schema";
 
-import { uuidFromMongoId } from "./uuid.js";
+import { uuidFromMongoId } from "./uuid";
 
 export interface LoaderContext {
   mongo: Db;

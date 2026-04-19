@@ -2,7 +2,7 @@ import type {
   IntegrationAdapter,
   SmsMessage,
   VoiceCall,
-} from "../types.js";
+} from "../types";
 
 export interface AircallConfig {
   apiId: string;

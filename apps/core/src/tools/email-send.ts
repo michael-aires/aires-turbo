@@ -5,7 +5,7 @@ import { z } from "zod/v4";
 import { defineTool, toolRegistry, writeAudit } from "@acme/agents";
 import type { ActorContext } from "@acme/auth";
 
-import { env } from "../env.js";
+import { env } from "../env";
 
 /**
  * `email.send` — first reference tool.

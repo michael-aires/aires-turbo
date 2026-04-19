@@ -1,12 +1,12 @@
 import { createLogger, startTelemetry } from "@acme/observability";
 
-import { startHealthServer } from "./health.js";
-import { startOutboxDispatcher } from "./outbox-dispatcher.js";
-import { startContractsWorker } from "./queues/contracts.js";
-import { startEmailWorker } from "./queues/email.js";
-import { startReportsWorker } from "./queues/reports.js";
-import { startSmsWorker } from "./queues/sms.js";
-import { startWebhookDeliverer } from "./webhook-deliverer.js";
+import { startHealthServer } from "./health";
+import { startOutboxDispatcher } from "./outbox-dispatcher";
+import { startContractsWorker } from "./queues/contracts";
+import { startEmailWorker } from "./queues/email";
+import { startReportsWorker } from "./queues/reports";
+import { startSmsWorker } from "./queues/sms";
+import { startWebhookDeliverer } from "./webhook-deliverer";
 
 startTelemetry("aires-workers");
 const logger = createLogger("aires-workers");

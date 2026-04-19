@@ -1,11 +1,5 @@
 {
   "extends": "@acme/tsconfig/base.json",
-  "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "outDir": "dist",
-    "noEmit": false
-  },
   "include": ["src", "tests", "scripts"],
   "exclude": ["node_modules", "dist"]
 }

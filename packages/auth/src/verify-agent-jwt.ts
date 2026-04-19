@@ -4,7 +4,7 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 import { db } from "@acme/db/client";
 import { agent, agentToken } from "@acme/db/schema";
 
-import type { ActorContext } from "./index.js";
+import type { ActorContext } from "./index";
 
 export interface VerifyAgentJwtOptions {
   /** Public Better-Auth base URL — the gateway uses this to fetch JWKs. */

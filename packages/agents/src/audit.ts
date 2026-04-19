@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { db } from "@acme/db/client";
 import { auditLog } from "@acme/db/schema";
 
-import type { ToolContext } from "./tools/types.js";
+import type { ToolContext } from "./tools/types";
 
 export interface AuditLogInput {
   tool?: string;

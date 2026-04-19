@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 
 import { createLogger } from "@acme/observability";
 
-import { env } from "./env.js";
+import { env } from "./env";
 
 const logger = createLogger("worker.health");
 

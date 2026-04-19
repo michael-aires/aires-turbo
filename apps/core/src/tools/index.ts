@@ -1,11 +1,11 @@
 import { syncToolCatalog } from "@acme/agents/tools";
 
-import { registerContractSendTool } from "./contract-send.js";
-import { registerEmailSendTool } from "./email-send.js";
-import { registerKbSearchTool } from "./kb-search.js";
-import { registerMemoryTools } from "./memory-remember.js";
-import { registerReportFetchTool } from "./report-fetch.js";
-import { registerSmsSendTool } from "./sms-send.js";
+import { registerContractSendTool } from "./contract-send";
+import { registerEmailSendTool } from "./email-send";
+import { registerKbSearchTool } from "./kb-search";
+import { registerMemoryTools } from "./memory-remember";
+import { registerReportFetchTool } from "./report-fetch";
+import { registerSmsSendTool } from "./sms-send";
 
 /**
  * Register every first-party tool at startup, then upsert the catalog to

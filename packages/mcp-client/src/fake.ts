@@ -3,8 +3,8 @@ import type {
   MakeClientInput,
   McpClientFactory,
   McpToolDescriptor,
-} from "./types.js";
-import { McpScopeError } from "./types.js";
+} from "./types";
+import { McpScopeError } from "./types";
 
 export interface FakeToolCall {
   toolName: string;

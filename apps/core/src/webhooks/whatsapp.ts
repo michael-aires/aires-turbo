@@ -2,8 +2,8 @@ import { Hono } from "hono";
 
 import { createLogger } from "@acme/observability";
 
-import { env } from "../env.js";
-import { verifyTwilioSignature } from "../lib/twilio-signature.js";
+import { env } from "../env";
+import { verifyTwilioSignature } from "../lib/twilio-signature";
 
 const logger = createLogger("aires-core.whatsapp-webhook");
 

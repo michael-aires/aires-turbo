@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 
 import type { Redis } from "ioredis";
 
-import { getKv } from "./index.js";
+import { getKv } from "./index";
 
 export const ChatMessageSchema = z.object({
   role: z.enum(["user", "assistant", "system", "tool"]),

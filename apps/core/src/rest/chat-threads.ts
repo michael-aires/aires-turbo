@@ -6,8 +6,8 @@ import { resolveOrgId } from "@acme/auth/org-resolver";
 import { db } from "@acme/db/client";
 import { chatThread } from "@acme/db/schema";
 
-import type { CoreHonoEnv } from "../middleware/context.js";
-import { getRequiredActor, requireActor } from "../middleware/context.js";
+import type { CoreHonoEnv } from "../middleware/context";
+import { getRequiredActor, requireActor } from "../middleware/context";
 
 const THREAD_LIST_LIMIT_DEFAULT = 20;
 const THREAD_LIST_LIMIT_MAX = 100;

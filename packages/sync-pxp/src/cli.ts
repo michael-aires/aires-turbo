@@ -8,7 +8,7 @@ import {
   loadActivities,
   loadContacts,
   loadProjects,
-} from "./loaders.js";
+} from "./loaders";
 
 const logger = createLogger("sync-pxp");
 

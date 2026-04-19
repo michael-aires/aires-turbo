@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-import { env } from "../env.js";
+import { env } from "../env";
 
 const WhoAmIResponseSchema = z.object({
   actor: z.union([

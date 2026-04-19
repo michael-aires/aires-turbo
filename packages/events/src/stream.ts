@@ -1,6 +1,6 @@
 import { Redis } from "ioredis";
 
-import type { EventEnvelope } from "./schemas.js";
+import type { EventEnvelope } from "./schemas";
 
 const STREAM_KEY = "aires:events";
 

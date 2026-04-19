@@ -6,8 +6,8 @@ import { EventType, publish } from "@acme/events";
 import { SendGridAdapter } from "@acme/integrations";
 import { createLogger } from "@acme/observability";
 
-import { connection } from "../connection.js";
-import { env } from "../env.js";
+import { connection } from "../connection";
+import { env } from "../env";
 
 const logger = createLogger("worker.email");
 

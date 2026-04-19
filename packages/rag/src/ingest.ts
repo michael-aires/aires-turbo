@@ -5,8 +5,8 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@acme/db/client";
 import { kbChunk, kbDocument } from "@acme/db/schema";
 
-import { chunkText } from "./chunk.js";
-import type { EmbedProvider } from "./embed.js";
+import { chunkText } from "./chunk";
+import type { EmbedProvider } from "./embed";
 
 export interface IngestInput {
   organizationId: string;

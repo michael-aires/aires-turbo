@@ -3,8 +3,8 @@ import { Hono } from "hono";
 
 import { createLogger, startTelemetry } from "@acme/observability";
 
-import { env } from "./env.js";
-import { handleInboundWhatsApp } from "./handlers/whatsapp.js";
+import { env } from "./env";
+import { handleInboundWhatsApp } from "./handlers/whatsapp";
 
 startTelemetry("aires-chat-bots");
 const logger = createLogger("aires-chat-bots");

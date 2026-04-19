@@ -1,4 +1,4 @@
-import type { ToolDefinition } from "./types.js";
+import type { ToolDefinition } from "./types";
 
 /**
  * Static in-memory tool registry. Apps register tool definitions at startup;

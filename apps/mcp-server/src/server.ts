@@ -8,8 +8,8 @@ import { z } from "zod/v4";
 
 import { createLogger } from "@acme/observability";
 
-import { fetchToolCatalog, invokeTool } from "./core-client.js";
-import { env } from "./env.js";
+import { fetchToolCatalog, invokeTool } from "./core-client";
+import { env } from "./env";
 
 const logger = createLogger("aires-mcp");
 

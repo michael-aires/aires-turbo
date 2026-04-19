@@ -7,9 +7,9 @@ import { subscription } from "@acme/db/schema";
 import {
   assertOrganizationAccess,
   assertRowOrganizationAccess,
-} from "../authz.js";
-import { validateWebhookTarget } from "../webhook-security.js";
-import { protectedProcedure } from "../trpc.js";
+} from "../authz";
+import { validateWebhookTarget } from "../webhook-security";
+import { protectedProcedure } from "../trpc";
 
 export const subscriptionRouter = {
   list: protectedProcedure

@@ -2,9 +2,9 @@ import { Hono } from "hono";
 
 import { CreateContactSchema } from "@acme/db/schema";
 
-import type { CoreHonoEnv } from "../middleware/context.js";
-import { requireActor } from "../middleware/context.js";
-import { appCaller } from "../trpc-caller.js";
+import type { CoreHonoEnv } from "../middleware/context";
+import { requireActor } from "../middleware/context";
+import { appCaller } from "../trpc-caller";
 
 /**
  * Thin REST adapter over the tRPC router — keeps REST and tRPC in sync by

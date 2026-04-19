@@ -1,11 +1,11 @@
 import { createLogger } from "@acme/observability";
 
-import { createSseMcpClient } from "./factory.js";
-import type { AiSdkTool, AiresMcpClient, LoadToolsInput, LoadedTools } from "./types.js";
-import { McpScopeError } from "./types.js";
+import { createSseMcpClient } from "./factory";
+import type { AiSdkTool, AiresMcpClient, LoadToolsInput, LoadedTools } from "./types";
+import { McpScopeError } from "./types";
 
-export * from "./types.js";
-export { createSseMcpClient } from "./factory.js";
+export * from "./types";
+export { createSseMcpClient } from "./factory";
 
 const logger = createLogger("mcp-client");
 

@@ -1,6 +1,6 @@
 import { initAuth } from "@acme/auth";
 
-import { env } from "./env.js";
+import { env } from "./env";
 
 export const auth = initAuth({
   baseUrl: env.CORE_PUBLIC_URL,

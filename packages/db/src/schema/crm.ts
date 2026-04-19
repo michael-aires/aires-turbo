@@ -3,7 +3,7 @@ import { index, pgTable, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
-import { user } from "../auth-schema.js";
+import { user } from "../auth-schema";
 import { agent, organization, project } from "./identity";
 
 export const contact = pgTable(

@@ -1,12 +1,12 @@
-import { activityRouter } from "./router/activity.js";
-import { agentRouter } from "./router/agent.js";
-import { auditRouter } from "./router/audit.js";
-import { authRouter } from "./router/auth.js";
-import { contactRouter } from "./router/contact.js";
-import { subscriptionRouter } from "./router/subscription.js";
-import { taskRouter } from "./router/task.js";
-import { toolRouter } from "./router/tool.js";
-import { createTRPCRouter } from "./trpc.js";
+import { activityRouter } from "./router/activity";
+import { agentRouter } from "./router/agent";
+import { auditRouter } from "./router/audit";
+import { authRouter } from "./router/auth";
+import { contactRouter } from "./router/contact";
+import { subscriptionRouter } from "./router/subscription";
+import { taskRouter } from "./router/task";
+import { toolRouter } from "./router/tool";
+import { createTRPCRouter } from "./trpc";
 
 export const appRouter = createTRPCRouter({
   auth: authRouter,

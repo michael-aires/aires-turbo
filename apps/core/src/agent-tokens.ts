@@ -4,9 +4,9 @@ import { eq } from "drizzle-orm";
 import { db } from "@acme/db/client";
 import { agent, agentToken } from "@acme/db/schema";
 
-import { auth } from "./auth.js";
-import type { CoreHonoEnv } from "./middleware/context.js";
-import { getRequiredActor, requireActor } from "./middleware/context.js";
+import { auth } from "./auth";
+import type { CoreHonoEnv } from "./middleware/context";
+import { getRequiredActor, requireActor } from "./middleware/context";
 
 /**
  * Mint a short-lived JWT for a given agent. The caller must be a human user

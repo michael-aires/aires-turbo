@@ -1,7 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 
-import type { AiresMcpClient, MakeClientInput } from "./types.js";
+import type { AiresMcpClient, MakeClientInput } from "./types";
 
 /**
  * Default factory. Opens an SSE transport against the Aires MCP server and

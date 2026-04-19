@@ -2,8 +2,8 @@ import type { Context } from "hono";
 
 import { appRouter, createTRPCContext } from "@acme/api";
 
-import { auth } from "./auth.js";
-import type { CoreHonoEnv } from "./middleware/context.js";
+import { auth } from "./auth";
+import type { CoreHonoEnv } from "./middleware/context";
 
 /**
  * Build a tRPC caller bound to the same context the REST handlers see, so

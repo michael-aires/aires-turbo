@@ -6,9 +6,9 @@ import { z } from "zod/v4";
 import { createChatSessions } from "@acme/kv/chat-sessions";
 import { createLogger, startTelemetry } from "@acme/observability";
 
-import { env } from "./env.js";
-import { resolveCaller } from "./lib/resolve-caller.js";
-import { executeRun } from "./runs/execute-run.js";
+import { env } from "./env";
+import { resolveCaller } from "./lib/resolve-caller";
+import { executeRun } from "./runs/execute-run";
 
 startTelemetry("aires-agent-harness");
 const logger = createLogger("aires-agent-harness");

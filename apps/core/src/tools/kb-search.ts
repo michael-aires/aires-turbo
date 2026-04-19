@@ -3,7 +3,7 @@ import { z } from "zod/v4";
 import { defineTool, toolRegistry } from "@acme/agents";
 import { hybridSearch, OpenAIEmbedProvider } from "@acme/rag";
 
-import { env } from "../env.js";
+import { env } from "../env";
 
 const Input = z.object({
   query: z.string().min(1).max(2000),

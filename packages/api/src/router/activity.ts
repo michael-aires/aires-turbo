@@ -6,8 +6,8 @@ import type { DBTransaction } from "@acme/db/client";
 import { activity, CreateActivitySchema } from "@acme/db/schema";
 import { EventType, publish } from "@acme/events";
 
-import { assertOrganizationAccess } from "../authz.js";
-import { protectedProcedure } from "../trpc.js";
+import { assertOrganizationAccess } from "../authz";
+import { protectedProcedure } from "../trpc";
 
 export const activityRouter = {
   list: protectedProcedure

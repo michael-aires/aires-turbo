@@ -1,4 +1,4 @@
-import type { EmailMessage, IntegrationAdapter } from "../types.js";
+import type { EmailMessage, IntegrationAdapter } from "../types";
 
 export interface SendGridConfig {
   apiKey: string;

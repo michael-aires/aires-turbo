@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@acme/db/client";
 import { member } from "@acme/db/schema";
 
-import type { ActorContext } from "./index.js";
+import type { ActorContext } from "./index";
 
 /**
  * Resolve an actor's `organizationId`:

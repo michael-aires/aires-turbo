@@ -1,3 +1,3 @@
-export * from "./logger.js";
-export * from "./otel.js";
-export * from "./metrics.js";
+export * from "./logger";
+export * from "./otel";
+export * from "./metrics";

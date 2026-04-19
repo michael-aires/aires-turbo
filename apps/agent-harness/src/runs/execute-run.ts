@@ -5,11 +5,11 @@ import { loadAiresMcpTools } from "@acme/mcp-client";
 import type { LoadedTools } from "@acme/mcp-client";
 import { createLogger } from "@acme/observability";
 
-import { mintAgentToken } from "../lib/agent-token.js";
-import { pickProvider, resolveProvider } from "../lib/providers.js";
-import type { ProviderId } from "../lib/providers.js";
-import { upsertThreadIndex } from "./thread-index.js";
-import { env } from "../env.js";
+import { mintAgentToken } from "../lib/agent-token";
+import { pickProvider, resolveProvider } from "../lib/providers";
+import type { ProviderId } from "../lib/providers";
+import { upsertThreadIndex } from "./thread-index";
+import { env } from "../env";
 
 const logger = createLogger("agent-harness");
 

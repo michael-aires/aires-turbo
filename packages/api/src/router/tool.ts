@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { toolRegistry } from "@acme/agents/tools";
 import { tool as toolTable } from "@acme/db/schema";
 
-import { protectedProcedure } from "../trpc.js";
+import { protectedProcedure } from "../trpc";
 
 /**
  * Catalog-only tRPC surface. Tool execution MUST go through the authenticated

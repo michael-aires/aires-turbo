@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 
 import { db } from "@acme/db/client";
 
-import type { EmbedProvider } from "./embed.js";
+import type { EmbedProvider } from "./embed";
 
 export interface HybridSearchInput {
   query: string;

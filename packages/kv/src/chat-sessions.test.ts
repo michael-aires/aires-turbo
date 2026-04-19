@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 
 import type { Redis } from "ioredis";
 
-import { createChatSessions } from "./chat-sessions.js";
+import { createChatSessions } from "./chat-sessions";
 
 /**
  * Tiny in-memory stand-in for the subset of ioredis commands chat-sessions

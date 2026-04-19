@@ -3,8 +3,8 @@ import { eq, sql } from "drizzle-orm";
 import { db } from "@acme/db/client";
 import { outboxEvent } from "@acme/db/schema";
 
-import { EventEnvelope, payloadSchemaForEvent } from "./schemas.js";
-import type { EventType } from "./schemas.js";
+import { EventEnvelope, payloadSchemaForEvent } from "./schemas";
+import type { EventType } from "./schemas";
 
 export interface PublishInput {
   organizationId: string;

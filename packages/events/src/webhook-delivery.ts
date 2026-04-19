@@ -5,7 +5,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { db } from "@acme/db/client";
 import { subscription, webhookDelivery } from "@acme/db/schema";
 
-import type { EventEnvelope } from "./schemas.js";
+import type { EventEnvelope } from "./schemas";
 
 export interface DeliverOptions {
   maxAttempts?: number;

@@ -3,8 +3,8 @@ import { Worker } from "bullmq";
 import { AircallAdapter } from "@acme/integrations";
 import { createLogger } from "@acme/observability";
 
-import { connection } from "../connection.js";
-import { env } from "../env.js";
+import { connection } from "../connection";
+import { env } from "../env";
 
 const logger = createLogger("worker.sms");
 

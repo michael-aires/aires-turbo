@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@acme/db/client";
 import { tool as toolTable } from "@acme/db/schema";
 
-import { toolRegistry } from "./registry.js";
+import { toolRegistry } from "./registry";
 
 /**
  * Upsert every in-memory tool definition into the Postgres catalog so the

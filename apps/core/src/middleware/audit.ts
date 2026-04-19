@@ -4,7 +4,7 @@ import { writeAudit } from "@acme/agents";
 import { resolveOrgId } from "@acme/auth/org-resolver";
 import { createLogger } from "@acme/observability";
 
-import type { CoreHonoEnv } from "./context.js";
+import type { CoreHonoEnv } from "./context";
 
 const logger = createLogger("core.audit");
 

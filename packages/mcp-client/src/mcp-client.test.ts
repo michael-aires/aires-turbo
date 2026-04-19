@@ -1,8 +1,8 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 
-import { createFakeMcpClient } from "./fake.js";
-import { loadAiresMcpTools, McpScopeError } from "./index.js";
+import { createFakeMcpClient } from "./fake";
+import { loadAiresMcpTools, McpScopeError } from "./index";
 
 describe("loadAiresMcpTools", () => {
   it("throws when agentJwt is empty", async () => {

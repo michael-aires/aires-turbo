@@ -1,7 +1,7 @@
 import type {
   IntegrationAdapter,
   ReportExportRequest,
-} from "../types.js";
+} from "../types";
 
 export interface BlacklineConfig {
   apiToken: string;

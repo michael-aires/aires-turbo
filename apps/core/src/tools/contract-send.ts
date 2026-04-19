@@ -7,7 +7,7 @@ import { db } from "@acme/db/client";
 import { agentRun } from "@acme/db/schema";
 import { ContractSignRequestSchema } from "@acme/integrations";
 
-import { env } from "../env.js";
+import { env } from "../env";
 
 const connection = new IORedis(env.REDIS_URL, {
   maxRetriesPerRequest: null,

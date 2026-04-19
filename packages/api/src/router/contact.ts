@@ -9,8 +9,8 @@ import { EventType, publish } from "@acme/events";
 import {
   assertOrganizationAccess,
   assertRowOrganizationAccess,
-} from "../authz.js";
-import { protectedProcedure } from "../trpc.js";
+} from "../authz";
+import { protectedProcedure } from "../trpc";
 
 export const contactRouter = {
   list: protectedProcedure

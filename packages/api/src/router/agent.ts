@@ -8,8 +8,8 @@ import { agent, agentToken } from "@acme/db/schema";
 import {
   assertOrganizationAccess,
   assertRowOrganizationAccess,
-} from "../authz.js";
-import { protectedProcedure } from "../trpc.js";
+} from "../authz";
+import { protectedProcedure } from "../trpc";
 
 export const agentRouter = {
   list: protectedProcedure

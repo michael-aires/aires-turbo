@@ -3,7 +3,7 @@ import { z } from "zod/v4";
 import { defineTool, toolRegistry } from "@acme/agents";
 import { OpenAIEmbedProvider, recall, remember } from "@acme/rag";
 
-import { env } from "../env.js";
+import { env } from "../env";
 
 const RememberInput = z.object({
   content: z.string().min(1).max(4000),

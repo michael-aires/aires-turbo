@@ -2,8 +2,8 @@ import { z } from "zod/v4";
 
 import { createLogger } from "@acme/observability";
 
-import { env } from "../env.js";
-import { sendWhatsAppMessage } from "../lib/twilio-client.js";
+import { env } from "../env";
+import { sendWhatsAppMessage } from "../lib/twilio-client";
 
 const logger = createLogger("chat-bots.whatsapp");
 

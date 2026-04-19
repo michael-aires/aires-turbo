@@ -4,8 +4,8 @@ import { z } from "zod/v4";
 
 import { auditLog } from "@acme/db/schema";
 
-import { assertOrganizationAccess } from "../authz.js";
-import { protectedProcedure } from "../trpc.js";
+import { assertOrganizationAccess } from "../authz";
+import { protectedProcedure } from "../trpc";
 
 export const auditRouter = {
   list: protectedProcedure

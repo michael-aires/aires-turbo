@@ -3,10 +3,10 @@ import { Hono } from "hono";
 import { hitRateLimit, toolRegistry, writeAudit } from "@acme/agents";
 import { resolveOrgId } from "@acme/auth/org-resolver";
 
-import { hasScope } from "../lib/scope.js";
-import { resolveToolProjectScope } from "../lib/tool-project-scope.js";
-import type { CoreHonoEnv } from "../middleware/context.js";
-import { getRequiredActor, requireActor } from "../middleware/context.js";
+import { hasScope } from "../lib/scope";
+import { resolveToolProjectScope } from "../lib/tool-project-scope";
+import type { CoreHonoEnv } from "../middleware/context";
+import { getRequiredActor, requireActor } from "../middleware/context";
 
 const TOOL_RATE_LIMIT_WINDOW_MS = 60_000;
 const TOOL_RATE_LIMIT_MAX = 60;

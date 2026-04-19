@@ -4,8 +4,8 @@ import { verifyAgentJwt } from "@acme/auth/verify-agent-jwt";
 import type { ActorContext } from "@acme/auth";
 import { resolveOrgId } from "@acme/auth/org-resolver";
 
-import { auth } from "../auth.js";
-import { env } from "../env.js";
+import { auth } from "../auth";
+import { env } from "../env";
 
 export interface CoreHonoEnv {
   Variables: {

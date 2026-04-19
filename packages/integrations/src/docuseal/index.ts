@@ -1,7 +1,7 @@
 import type {
   ContractSignRequest,
   IntegrationAdapter,
-} from "../types.js";
+} from "../types";
 
 export interface DocuSealConfig {
   apiKey: string;

@@ -4,9 +4,9 @@ import { streamSSE } from "hono/streaming";
 import { subscribeBroadcast } from "@acme/events";
 import { listUserOrganizationIds } from "@acme/auth/org-resolver";
 
-import { canActorAccessEvent } from "./lib/event-visibility.js";
-import type { CoreHonoEnv } from "./middleware/context.js";
-import { getRequiredActor, requireActor } from "./middleware/context.js";
+import { canActorAccessEvent } from "./lib/event-visibility";
+import type { CoreHonoEnv } from "./middleware/context";
+import { getRequiredActor, requireActor } from "./middleware/context";
 
 export const sseRouter = new Hono<CoreHonoEnv>()
   .use(requireActor)
