@@ -153,11 +153,17 @@ export async function executeRun(
  * Translate the MCP-provided tool map into AI SDK v5 `tool()` definitions.
  * MCP exposes JSON Schema, which AI SDK v5 accepts via its `jsonSchema()`
  * helper on the `inputSchema` property.
+ *
+ * Tool names are normalized to match Anthropic/OpenAI's allowed pattern
+ * `^[a-zA-Z0-9_-]{1,128}$` — MCP tools are conventionally `namespace.tool`,
+ * which we rewrite to `namespace_tool` at the provider boundary. The MCP
+ * server still receives the original dotted name when we execute.
  */
 function adaptToAiSdkTools(loaded: LoadedTools): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [name, def] of Object.entries(loaded.tools)) {
-    out[name] = tool({
+    const providerName = name.replace(/\./g, "_");
+    out[providerName] = tool({
       description: def.description,
       inputSchema: jsonSchema(def.parameters as Parameters<typeof jsonSchema>[0]),
       execute: (args: unknown) =>
