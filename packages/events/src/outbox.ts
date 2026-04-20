@@ -166,7 +166,7 @@ async function claimOutboxRows(options: {
       aggregate_id: string;
       event_type: string;
       payload: Record<string, unknown>;
-      created_at: Date;
+      created_at: Date | string;
     }[];
   };
 
@@ -179,7 +179,10 @@ async function claimOutboxRows(options: {
     aggregateId: row.aggregate_id,
     eventType: row.event_type,
     payload: row.payload,
-    createdAt: row.created_at,
+    // Raw db.execute() may return timestamptz as string (unlike the
+    // query builder which auto-parses to Date). Coerce defensively.
+    createdAt:
+      row.created_at instanceof Date ? row.created_at : new Date(row.created_at),
   }));
 }
 
