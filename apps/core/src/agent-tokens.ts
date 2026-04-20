@@ -81,6 +81,7 @@ export const agentTokensRouter = new Hono<CoreHonoEnv>()
 
     return c.json({
       token,
+      jti,
       expiresAt: expiresAt.toISOString(),
       agentId: row.id,
       scopes: row.scopes,
