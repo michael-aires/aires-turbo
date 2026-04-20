@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 
 import { db } from "@acme/db/client";
 import { outboxEvent } from "@acme/db/schema";
@@ -93,7 +93,10 @@ export async function drainOutbox(options: {
         claimedBy: null,
       })
       .where(
-        sql`id = ANY(${successIds}::uuid[]) and claimed_by = ${options.consumerId}`,
+        and(
+          inArray(outboxEvent.id, successIds),
+          eq(outboxEvent.claimedBy, options.consumerId),
+        ),
       );
   }
 
@@ -107,7 +110,10 @@ export async function drainOutbox(options: {
         claimedBy: null,
       })
       .where(
-        sql`id = ANY(${failedIds}::uuid[]) and claimed_by = ${options.consumerId}`,
+        and(
+          inArray(outboxEvent.id, failedIds),
+          eq(outboxEvent.claimedBy, options.consumerId),
+        ),
       );
   }
 
