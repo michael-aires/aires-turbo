@@ -6,7 +6,22 @@ import { db } from "@acme/db/client";
 import { contact } from "@acme/db/schema";
 import { EventType, publish } from "@acme/events";
 
-const CreateInput = z.object({
+/**
+ * LLMs often emit tool arguments in snake_case even when the schema is
+ * camelCase (e.g. `first_name` instead of `firstName`). Normalize keys
+ * before validation so both shapes work transparently.
+ */
+function camelize(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    const camel = key.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
+    out[camel] = value;
+  }
+  return out;
+}
+
+const CreateInput = z.preprocess(camelize, z.object({
   email: z.string().email().max(320).optional(),
   phone: z.string().max(32).optional(),
   firstName: z.string().max(128).optional(),
@@ -15,7 +30,7 @@ const CreateInput = z.object({
   status: z.string().max(32).optional(),
   projectId: z.string().uuid().optional(),
   custom: z.record(z.string(), z.unknown()).optional(),
-});
+}));
 
 const ContactRow = z.object({
   id: z.string(),
@@ -95,11 +110,14 @@ export const contactCreateTool = defineTool({
   },
 });
 
-const ListInput = z.object({
-  query: z.string().max(256).optional(),
-  projectId: z.string().uuid().optional(),
-  limit: z.number().int().min(1).max(50).default(10),
-});
+const ListInput = z.preprocess(
+  camelize,
+  z.object({
+    query: z.string().max(256).optional(),
+    projectId: z.string().uuid().optional(),
+    limit: z.number().int().min(1).max(50).default(10),
+  }),
+);
 
 export const contactListTool = defineTool({
   name: "contact.list",
@@ -150,15 +168,18 @@ export const contactListTool = defineTool({
   },
 });
 
-const UpdateInput = z.object({
-  id: z.string().uuid(),
-  email: z.string().email().max(320).optional(),
-  phone: z.string().max(32).optional(),
-  firstName: z.string().max(128).optional(),
-  lastName: z.string().max(128).optional(),
-  status: z.string().max(32).optional(),
-  source: z.string().max(64).optional(),
-});
+const UpdateInput = z.preprocess(
+  camelize,
+  z.object({
+    id: z.string().uuid(),
+    email: z.string().email().max(320).optional(),
+    phone: z.string().max(32).optional(),
+    firstName: z.string().max(128).optional(),
+    lastName: z.string().max(128).optional(),
+    status: z.string().max(32).optional(),
+    source: z.string().max(64).optional(),
+  }),
+);
 
 export const contactUpdateTool = defineTool({
   name: "contact.update",
