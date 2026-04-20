@@ -1,5 +1,6 @@
 import { syncToolCatalog } from "@acme/agents/tools";
 
+import { registerContactTools } from "./contact";
 import { registerContractSendTool } from "./contract-send";
 import { registerEmailSendTool } from "./email-send";
 import { registerKbSearchTool } from "./kb-search";
@@ -12,6 +13,7 @@ import { registerSmsSendTool } from "./sms-send";
  * Postgres so MCP + REST + Admin UI agree on what's available.
  */
 export async function registerAllTools() {
+  registerContactTools();
   registerEmailSendTool();
   registerSmsSendTool();
   registerContractSendTool();
