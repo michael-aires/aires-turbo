@@ -1,4 +1,4 @@
-import { jsonSchema, streamText, tool } from "ai";
+import { jsonSchema, stepCountIs, streamText, tool } from "ai";
 
 import { createChatSessions } from "@acme/kv/chat-sessions";
 import { loadAiresMcpTools } from "@acme/mcp-client";
@@ -126,6 +126,10 @@ export async function executeRun(
     model: resolved.model as Parameters<typeof stream>[0]["model"],
     tools: aiTools as unknown as Parameters<typeof stream>[0]["tools"],
     messages: messages ?? [],
+    // Allow the model to run additional steps after tool calls so it can
+    // summarize the tool results for the user. Without this, streamText
+    // stops after the first tool-call step and never produces a final reply.
+    stopWhen: stepCountIs(8),
     onFinish: async ({ text }) => {
       try {
         await sessions.append(input.threadId, {
