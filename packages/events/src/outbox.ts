@@ -129,7 +129,10 @@ async function claimOutboxRows(options: {
   consumerId: string;
   claimTtlMs: number;
 }): Promise<OutboxRow[]> {
-  const rows = (await db.execute(sql`
+  // drizzle-orm/node-postgres returns a pg.QueryResult<T> from db.execute(),
+  // not a bare array. We unwrap `.rows` here so callers keep working even if
+  // a future drizzle version normalises the shape.
+  const result = (await db.execute(sql`
     with next_rows as (
       select id
       from outbox_event
@@ -156,14 +159,18 @@ async function claimOutboxRows(options: {
       oe.payload,
       oe.created_at;
   `)) as unknown as {
-    id: string;
-    organization_id: string;
-    aggregate_type: string;
-    aggregate_id: string;
-    event_type: string;
-    payload: Record<string, unknown>;
-    created_at: Date;
-  }[];
+    rows?: {
+      id: string;
+      organization_id: string;
+      aggregate_type: string;
+      aggregate_id: string;
+      event_type: string;
+      payload: Record<string, unknown>;
+      created_at: Date;
+    }[];
+  };
+
+  const rows = Array.isArray(result) ? result : (result.rows ?? []);
 
   return rows.map((row) => ({
     id: row.id,

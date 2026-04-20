@@ -186,7 +186,10 @@ async function claimNextDelivery(options: {
       eventId: string;
     }
 > {
-  const rows = (await db.execute(sql`
+  // drizzle-orm/node-postgres db.execute() returns pg.QueryResult, not an
+  // array. Unwrap `.rows` and tolerate future drizzle versions that may
+  // normalise this.
+  const result = (await db.execute(sql`
     with next_delivery as (
       select wd.id
       from webhook_delivery wd
@@ -226,17 +229,20 @@ async function claimNextDelivery(options: {
     inner join subscription s on s.id = claimed.subscription_id
     inner join outbox_event oe on oe.id = claimed.outbox_event_id;
   `)) as unknown as {
-    delivery_id: string;
-    subscription_id: string;
-    attempts: number;
-    url: string;
-    secret: string;
-    payload: Record<string, unknown>;
-    event_type: string;
-    organization_id: string;
-    event_id: string;
-  }[];
+    rows?: {
+      delivery_id: string;
+      subscription_id: string;
+      attempts: number;
+      url: string;
+      secret: string;
+      payload: Record<string, unknown>;
+      event_type: string;
+      organization_id: string;
+      event_id: string;
+    }[];
+  };
 
+  const rows = Array.isArray(result) ? result : (result.rows ?? []);
   const row = rows[0];
   if (!row) return undefined;
 
