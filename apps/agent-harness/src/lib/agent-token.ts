@@ -34,7 +34,7 @@ export async function mintAgentToken(
     throw new Error("mintAgentToken requires a session cookie or API key");
   }
 
-  const url = `${env.CORE_INTERNAL_URL}/v1/agents/${encodeURIComponent(
+  const url = `${env.CORE_INTERNAL_URL}/api/v1/agents/${encodeURIComponent(
     input.agentId,
   )}/tokens`;
 
