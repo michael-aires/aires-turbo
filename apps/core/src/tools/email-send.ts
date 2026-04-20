@@ -20,14 +20,49 @@ const connection = new IORedis(env.REDIS_URL, {
 
 const emailQueue = new Queue("email", { connection });
 
-const Input = z.object({
-  to: z.union([z.string().email(), z.array(z.string().email())]),
-  subject: z.string().min(1).max(256),
-  text: z.string().optional(),
-  html: z.string().optional(),
-  from: z.string().email().optional(),
-  contactId: z.string().uuid().optional(),
-});
+/**
+ * LLMs emit a variety of field names for message contents: `body`, `content`,
+ * `message`, and occasionally snake_case variants. We normalise anything that
+ * maps to a plain-text payload onto `text` so the worker always has something
+ * to send — and we require at least one of text/html at the end via refine.
+ */
+function normalizeEmailInput(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+  const obj = raw as Record<string, unknown>;
+  const out: Record<string, unknown> = { ...obj };
+  const textAliases = ["body", "content", "message", "plainText", "plain_text"];
+  if (!out.text) {
+    for (const key of textAliases) {
+      if (typeof obj[key] === "string" && (obj[key] as string).length > 0) {
+        out.text = obj[key];
+        delete out[key];
+        break;
+      }
+    }
+  }
+  if (!out.html && typeof obj.body_html === "string") {
+    out.html = obj.body_html;
+    delete out.body_html;
+  }
+  return out;
+}
+
+const Input = z.preprocess(
+  normalizeEmailInput,
+  z
+    .object({
+      to: z.union([z.string().email(), z.array(z.string().email())]),
+      subject: z.string().min(1).max(256),
+      text: z.string().optional(),
+      html: z.string().optional(),
+      from: z.string().email().optional(),
+      contactId: z.string().uuid().optional(),
+    })
+    .refine((v) => Boolean(v.text || v.html), {
+      message: "Provide either `text` or `html` content for the email body.",
+      path: ["text"],
+    }),
+);
 
 const Output = z.object({
   jobId: z.string(),
@@ -43,7 +78,10 @@ function actorKey(actor: ActorContext): { type: "user" | "agent"; id: string } {
 export const emailSendTool = defineTool({
   name: "email.send",
   displayName: "Send email",
-  description: "Queue an outbound transactional email via SendGrid.",
+  description:
+    "Queue an outbound transactional email. Provide `to`, `subject`, and at " +
+    "least one of `text` (plain text body) or `html` (HTML body). Returns a " +
+    "jobId — delivery is asynchronous via the workers service.",
   category: "communication",
   inputSchema: Input,
   outputSchema: Output,
