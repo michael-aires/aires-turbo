@@ -1,4 +1,3 @@
-import { sql } from "drizzle-orm";
 import { index, pgTable, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
@@ -30,7 +29,7 @@ export const contact = pgTable(
       .timestamp({ withTimezone: true })
       .defaultNow()
       .notNull()
-      .$onUpdateFn(() => sql`now()`),
+      .$onUpdateFn(() => new Date()),
   }),
   (table) => [
     index("contact_org_email_idx").on(table.organizationId, table.email),
@@ -180,7 +179,7 @@ export const task = pgTable(
       .timestamp({ withTimezone: true })
       .defaultNow()
       .notNull()
-      .$onUpdateFn(() => sql`now()`),
+      .$onUpdateFn(() => new Date()),
   }),
   (table) => [
     index("task_owner_status_idx").on(table.ownerUserId, table.status),

@@ -1,4 +1,3 @@
-import { sql } from "drizzle-orm";
 import { index, pgTable, uniqueIndex } from "drizzle-orm/pg-core";
 
 import { user } from "../auth-schema";
@@ -15,7 +14,7 @@ export const organization = pgTable("organization", (t) => ({
     .timestamp({ withTimezone: true })
     .defaultNow()
     .notNull()
-    .$onUpdateFn(() => sql`now()`),
+    .$onUpdateFn(() => new Date()),
 }));
 
 export const member = pgTable(
@@ -85,7 +84,7 @@ export const apiKey = pgTable(
       .timestamp({ withTimezone: true })
       .defaultNow()
       .notNull()
-      .$onUpdateFn(() => sql`now()`),
+      .$onUpdateFn(() => new Date()),
     permissions: t.text(),
     metadata: t.text(),
   }),
@@ -131,7 +130,7 @@ export const agent = pgTable(
       .timestamp({ withTimezone: true })
       .defaultNow()
       .notNull()
-      .$onUpdateFn(() => sql`now()`),
+      .$onUpdateFn(() => new Date()),
   }),
   (table) => [
     index("agent_org_idx").on(table.organizationId),
