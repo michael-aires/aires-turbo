@@ -1,6 +1,8 @@
 export * from "./types";
 export { SendGridAdapter } from "./sendgrid/index";
 export type { SendGridConfig, SendGridSendResult } from "./sendgrid/index";
+export { ResendAdapter } from "./resend/index";
+export type { ResendConfig, ResendSendResult } from "./resend/index";
 export { AircallAdapter } from "./aircall/index";
 export type { AircallConfig } from "./aircall/index";
 export { DocuSealAdapter } from "./docuseal/index";

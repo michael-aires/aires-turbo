@@ -3,13 +3,51 @@ import { Worker } from "bullmq";
 import { db } from "@acme/db/client";
 import { activity, communication } from "@acme/db/schema";
 import { EventType, publish } from "@acme/events";
-import { SendGridAdapter } from "@acme/integrations";
+import { ResendAdapter, SendGridAdapter } from "@acme/integrations";
 import { createLogger } from "@acme/observability";
 
 import { connection } from "../connection";
 import { env } from "../env";
 
 const logger = createLogger("worker.email");
+
+/**
+ * Unified email transport: pick the first provider that is fully configured.
+ * Resend is preferred because it's what Aires domains are verified against;
+ * SendGrid is kept as a fallback so existing deployments keep working.
+ *
+ * Returns `undefined` when neither provider has creds, so the worker can
+ * gracefully self-disable and the queue just accumulates jobs rather than
+ * thrashing failures.
+ */
+type EmailTransport = {
+  provider: "resend" | "sendgrid";
+  send: (msg: {
+    to: string | string[];
+    subject: string;
+    text?: string;
+    html?: string;
+    from?: string;
+  }) => Promise<{ messageId: string }>;
+};
+
+function selectTransport(): EmailTransport | undefined {
+  if (env.RESEND_API_KEY) {
+    const adapter = new ResendAdapter({
+      apiKey: env.RESEND_API_KEY,
+      defaultFrom: env.RESEND_FROM_EMAIL,
+    });
+    return { provider: "resend", send: (msg) => adapter.send(msg) };
+  }
+  if (env.SENDGRID_API_KEY) {
+    const adapter = new SendGridAdapter({
+      apiKey: env.SENDGRID_API_KEY,
+      defaultFrom: env.SENDGRID_FROM_EMAIL,
+    });
+    return { provider: "sendgrid", send: (msg) => adapter.send(msg) };
+  }
+  return undefined;
+}
 
 export interface EmailJob {
   to: string | string[];
@@ -24,23 +62,21 @@ export interface EmailJob {
 }
 
 export function startEmailWorker() {
-  if (!env.SENDGRID_API_KEY) {
+  const transport = selectTransport();
+  if (!transport) {
     logger.warn({
-      reason: "SENDGRID_API_KEY missing",
+      reason: "no email provider configured (RESEND_API_KEY or SENDGRID_API_KEY)",
     }, "email.worker.disabled");
     return undefined;
   }
 
-  const adapter = new SendGridAdapter({
-    apiKey: env.SENDGRID_API_KEY,
-    defaultFrom: env.SENDGRID_FROM_EMAIL,
-  });
+  logger.info({ provider: transport.provider }, "email.worker.started");
 
   const worker = new Worker<EmailJob>(
     "email",
     async (job) => {
       const start = Date.now();
-      const result = await adapter.send({
+      const result = await transport.send({
         to: job.data.to,
         subject: job.data.subject,
         text: job.data.text,
@@ -49,12 +85,13 @@ export function startEmailWorker() {
       });
 
       if (job.data.contactId && job.data.organizationId) {
-        await recordActivityAndEvent(job.data, result.messageId);
+        await recordActivityAndEvent(job.data, result.messageId, transport.provider);
       }
 
       logger.info({
         operation: "email.worker.send",
         jobId: job.id,
+        provider: transport.provider,
         durationMs: Date.now() - start,
         messageId: result.messageId,
       }, "email.sent");
@@ -85,6 +122,7 @@ export function startEmailWorker() {
 async function recordActivityAndEvent(
   data: EmailJob,
   messageId: string,
+  provider: "resend" | "sendgrid",
 ): Promise<void> {
   const organizationId = data.organizationId;
   if (!organizationId) return;
@@ -107,7 +145,7 @@ async function recordActivityAndEvent(
 
     await tx.insert(communication).values({
       activityId: act.id,
-      provider: "sendgrid",
+      provider,
       externalId: messageId,
       subject: data.subject,
       body: data.html ?? data.text ?? "",

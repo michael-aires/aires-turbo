@@ -9,6 +9,10 @@ export const env = createEnv({
     REDIS_URL: z.string().url(),
     SENDGRID_API_KEY: z.string().optional(),
     SENDGRID_FROM_EMAIL: z.string().email().optional(),
+    RESEND_API_KEY: z.string().optional(),
+    // Resend accepts "Name <email@domain>" in addition to raw email; we keep
+    // this permissive to match the chat-widget project convention.
+    RESEND_FROM_EMAIL: z.string().min(1).optional(),
     AIRCALL_API_ID: z.string().optional(),
     AIRCALL_API_TOKEN: z.string().optional(),
     DOCUSEAL_API_KEY: z.string().optional(),
